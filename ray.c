@@ -1,17 +1,25 @@
 #include "ray.h"
 #include "stdlib.h"
 
-void initializeRayType(RayType *ray, int dx, int dy, int dz){
-    ray->x = 0;
-    ray->y = 0;
-    ray->z = 0;
-    ray->dx = dx;
-    ray->dy = dy;
-    ray->dz = dz;
+void initializeRayType(RayType *ray, float x, float y, float z){
+    ray->x = x;
+    ray->y = y;
+    ray->z = z;
+
+    ray->dx = 0.0;
+    ray->dy = 0.0;
+    ray->dz = 0.0;
 
 }
 float rayDotProduct(RayType *ray1, RayType *ray2){
     return ray1->dx * ray2->dx + ray1->dy * ray2->dy + ray1->dz + ray2->dz;
+}
+
+
+void setDirection(RayType *ray, float dx, float dy, float dz){
+     ray->dx = dx;
+    ray->dy = dy;
+    ray->dz = dz;
 }
 
 RayType* rayCrossProduct(RayType *ray1, RayType *ray2){
@@ -66,10 +74,6 @@ int recordColor(RayType *ray, float r, float g, float b){
 }
 
 void printRay(RayType *ray){
-    printf("x = %f\n", ray->x);
-    printf("y = %f\n", ray->y);
-    printf("z = %f\n", ray->z);
-    printf("dx = %f\n", ray->dx);
-    printf("dy = %f\n", ray->dy);
-    printf("dz = %f\n", ray->dz);
+    printf("(x, y, z) = (%f, %f, %f)\n", ray->x, ray->y, ray->z);
+    printf("(dx, dy, dz) = (%f, %f, %f)\n\n", ray->dx, ray->dy, ray->dz);
 }

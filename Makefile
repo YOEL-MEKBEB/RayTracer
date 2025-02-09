@@ -1,8 +1,8 @@
 
 CC = gcc
 
-output: ray.o test.o camera.o vector.o colorType.o
-	$(CC) colorType.o vector.o camera.o ray.o test.o -o test
+output: ray.o test.o camera.o vector.o colorType.o shapes.o
+	$(CC) shapes.o colorType.o vector.o camera.o ray.o test.o -o test -lm
 
 test.o: test.c
 	$(CC) -c test.c
@@ -19,5 +19,7 @@ vector.o: vector.h vector.c
 colorType.o: colorType.h colorType.c
 	$(CC) -c colorType.c
 
+shapes.o: shapes.h shapes.c
+	$(CC) -c shapes.c
 clean: 
 	rm *.o test

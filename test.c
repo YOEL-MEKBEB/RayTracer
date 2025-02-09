@@ -4,6 +4,7 @@
 #include "string.h"
 #include "colorType.h"
 #include "shapes.h"
+#include "vector.h"
 
 
 int writeHeader(FILE* file, char* width, char* height){
@@ -40,8 +41,8 @@ int writeHeader(FILE* file, char* width, char* height){
 /// @param height 
 /// @param color 
 /// @return 
-int writeBackground(FILE* file, char* width, char* height, ColorType* backgroundColor){
-    int numWidth = atoi(width);
+int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorType* backgroundColor, SphereType* sphere){
+    int numWidth = atoi(width); 
     
     int numHeight = atoi(height);
     printf("%d\n", numWidth);
@@ -51,26 +52,79 @@ int writeBackground(FILE* file, char* width, char* height, ColorType* background
     int g = (int)(backgroundColor->g * 255);
     int b = (int)(backgroundColor->b * 255);
 
+
+
+    Vector negOrigin = scalarVecMult(-1, &camera->viewOrigin);
+        
+    Vector negUL = scalarVecMult(-1, &camera->upperLeftCorner);
+    Vector numerator = vectorAdd(&camera->upperRightCorner,&negUL);
+    Vector changeH = scalarVecMult(1/((float)numWidth-1), &numerator);
+    
+    //changeH = normalize(&changeH);
+
+            
+    Vector numerator2 = vectorAdd(&camera->lowerLeftCorner,&negUL);
+    Vector changeV = scalarVecMult(1/((float)numHeight-1), &numerator2);
+    //changeV = normalize(&changeV);
+    printf("changeH: (%f, %f, %f)\n", changeH.dx, changeH.dy, changeH.dz);
+
+    printf("changeV:  (%f, %f, %f)\n", changeV.dx, changeV.dy, changeV.dz);
     // loops through the size of the image to set each pixel value and write to the file
     for(int i = 0; i < numHeight; i++){
         
         char numChar[15];
 
-        // j < 3 * numWidth because each pixel will have 3 number associated with it
         for(int j = 0; j < numWidth; j++){
+
+            
+            RayType ray;
+            initializeRayType(&ray, camera->viewOrigin.dx, camera->viewOrigin.dy, camera->viewOrigin.dz);
+
+            Vector row = scalarVecMult(j, &changeH);
+            
+            printf("row: (%f, %f, %f)\n", row.dx, row.dy, row.dz);
+
+            Vector col = scalarVecMult(i, &changeV);
+            Vector sum1 = vectorAdd(&camera->upperLeftCorner, &row);
+            printf("sum1: (%f, %f, %f)\n", sum1.dx, sum1.dy, sum1.dz);
+
+            Vector viewingPoint = vectorAdd(&sum1, &col);
+            Vector direction = vectorAdd(&viewingPoint, &negOrigin);
+            printf("viewingPoint: (%f, %f, %f)\n", viewingPoint.dx, viewingPoint.dy, viewingPoint.dz);
+            setDirection(&ray, viewingPoint.dx, viewingPoint.dy, viewingPoint.dz); 
+
+            printRay(&ray);
+
+            /*
+                change h = (UR - UL)/(width-1) : vector
+                point in viewing window = UL + i * change in v + j * change in h 
+
+                ray equation = origin + t*(point in viewing window -  origin); 
+
+            */
+
+
+             
+
+
+
+
+
+
+
             if(j%9 == 0){
                 if(sprintf(numChar, "%d %d %d\n", r, g, b) == -1){
                     printf("sprintf failed in writeRandomBody\n");
                     return -1;
                 }
-                printf("%s\n", numChar);
+                //printf("%s\n", numChar);
                 
             }else{
                 if(sprintf(numChar, "%d %d %d ", r, g, b) == -1){
                     printf("sprintf failed in writeRandomBody\n");
                     return -1;
                 }
-                printf("%s\n", numChar);
+                //printf("%s\n", numChar);
             }
             if(fwrite(numChar, strlen(numChar), 1, file) < 1){
                 perror("failed to write in writeRandomBody\n");
@@ -97,7 +151,7 @@ int main(){
         scanf("%s", buf);
         if(strcmp(buf, "q") == 0){
             printf("quiting...\n");
-            return 0;
+            return 0; 
         }
 
         FILE* inputFile = fopen(buf, "r");
@@ -138,7 +192,10 @@ int main(){
         // eye location
 
 
-        //view direction
+        //aspect ratio
+
+        setAspectRatio(camera, strtof(width, NULL), strtof(height, NULL));
+        // view direction
         token = strtok(NULL, delimiter1);
         printf("%s\n", token);
         if(strcmp(token, "viewdir") != 0){
@@ -217,38 +274,29 @@ int main(){
             printf("invalid text format\n");
             return 1;
         }
-        char *X = strtok(NULL, delimiter1);
-        char *Y = strtok(NULL, delimiter1);
-        char *Z = strtok(NULL, delimiter1);
-        char *r = strtok(NULL, delimiter2);
+        float X = strtof(strtok(NULL, delimiter1), NULL);
+        float Y = strtof(strtok(NULL, delimiter1), NULL);
+        float Z = strtof(strtok(NULL, delimiter1), NULL);
+        float r = strtof(strtok(NULL, delimiter1), NULL);
         // type of object
 
-
+        SphereType sphere;
+        initializeSphere(&sphere, X, Y, Z, r);
 
         char* ppm = strtok(buf, ".");
         ppm = strcat(ppm, ".ppm");
         printf("Your new file is : %s\n", ppm);
-        //printf("Your height is : %s\n", height);
+        
         FILE* ppmFile = fopen(ppm, "w");
         writeHeader(ppmFile, width, height);
-        writeBackground(ppmFile, width, height, backgroundColor);
+        writeBackground(ppmFile, camera, width, height, backgroundColor, &sphere);
         fclose(ppmFile);
 
 
-
         printCamera(camera);
-        printf("%s\n", width);
-        printf("%s\n", height);
-        printf("%s\n", cX);
-        printf("%s\n", cY);
-        printf("%s\n", cZ);
-        printf("%s\n", X);
-        printf("%s\n", Y);
-        printf("%s\n", Z);
-        printf("%s\n", r);
-    
-
         fclose(inputFile);
     }
 
+    free(camera);
+    free(backgroundColor);
 }

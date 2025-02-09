@@ -11,9 +11,11 @@ typedef struct {
     float r, g, b;
 } RayType;
 
+//initializes the position of the ray
+void initializeRayType(RayType *ray, float x, float y, float z);
 
-void initializeRayType(RayType *ray, int dx, int dy, int dz);
-
+// sets the direction of the ray
+void setDirection(RayType *ray, float dx, float dy, float dz);
 
 // returns the dot product between the 2 rays
 float rayDotProduct(RayType *ray1, RayType *ray2);

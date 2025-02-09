@@ -27,8 +27,7 @@ typedef struct {
     Vector lowerLeftCorner;
     Vector upperRightCorner;
     Vector lowerRightCorner;
-    // viewing window
-
+    // viewing window 
     float horizontalFOV; // in degrees
     float verticalFOV; // in degrees
     float aspectRatio;

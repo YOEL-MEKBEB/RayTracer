@@ -43,18 +43,22 @@ void defineImageCoordinates(Camera* camera){
 
     Vector w = scalarVecMult(-1.0, &camera->viewDirection);
     Vector vertical = crossProduct(&camera->u, &w);
-    camera->v = normalize(&vertical);
+    camera->v = normalize(&vertical);    
 
 }
-
+ 
 void setAspectRatio(Camera* camera, float width, float height){
     camera->aspectRatio = width/height;
 }
 
 void setViewingWindow(Camera* camera, float d){
-    float width = 2*d*tan(camera->horizontalFOV/2);
+    
+    
+
     float height = 2*d*tan(camera->verticalFOV/2);
 
+    float width = camera->aspectRatio * height;
+    
     Vector distance = scalarVecMult(d, &camera->viewDirection);
     Vector forward = vectorAdd(&camera->viewOrigin, &distance);
     
@@ -63,6 +67,8 @@ void setViewingWindow(Camera* camera, float d){
     Vector negHeight = scalarVecMult(-1*height/2, &camera->v);
     Vector posHeight = scalarVecMult(height/2, &camera->v);
 
+    
+    printf("negWidth: (%f, %f, %f)\n", negWidth.dx, negWidth.dy, negWidth.dz);
 
 
 
