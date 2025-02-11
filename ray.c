@@ -11,29 +11,12 @@ void initializeRayType(RayType *ray, float x, float y, float z){
     ray->dz = 0.0;
 
 }
-float rayDotProduct(RayType *ray1, RayType *ray2){
-    return ray1->dx * ray2->dx + ray1->dy * ray2->dy + ray1->dz + ray2->dz;
-}
 
 
 void setDirection(RayType *ray, float dx, float dy, float dz){
     ray->dx = dx;
     ray->dy = dy;
     ray->dz = dz;
-}
-
-RayType* rayCrossProduct(RayType *ray1, RayType *ray2){
-    RayType* product = malloc(sizeof(RayType));
-    product->x = ray1->x;
-    product->y = ray1->y;
-    product->z = ray1->z;
-
-    product->dx = ray1->dy * ray2->dz - (ray1->dz * ray2->dy);
-    product->dy = ray1->dz * ray2->dx - (ray1->dx * ray2->dz);
-    product->dz = ray1->dx * ray2->dy - (ray1->dy * ray2->dx);
-
-
-    return product;
 }
 
 RayType* RaySum(RayType *ray1, RayType *ray2){

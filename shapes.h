@@ -9,7 +9,8 @@ typedef struct {
 } SphereType;
 
 
-void initializeSphere(SphereType* sphere, float x, float y, float z, float radius);
+void initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m);
 
 void setColor(SphereType* sphere, float r, float g, float b);
+void printSphere(SphereType *sphere);
 #endif

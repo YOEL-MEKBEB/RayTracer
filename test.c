@@ -42,12 +42,12 @@ int writeHeader(FILE* file, char* width, char* height){
 /// @param height 
 /// @param color 
 /// @return 
-int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorType* backgroundColor, SphereType* sphere){
+int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorType* backgroundColor, SphereType** sphereArray){
     int numWidth = atoi(width); 
     
     int numHeight = atoi(height);
-    printf("%d\n", numWidth);
-    printf("%d\n", numHeight);
+   // printf("%d\n", numWidth);
+    //printf("%d\n", numHeight);
 
     int r = (int) (backgroundColor->r * 255);
     int g = (int)(backgroundColor->g * 255);
@@ -67,9 +67,9 @@ int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorT
     Vector numerator2 = vectorAdd(&camera->lowerLeftCorner,&negUL);
     Vector changeV = scalarVecMult(1/((float)numHeight-1), &numerator2);
     //changeV = normalize(&changeV);
-    printf("changeH: (%f, %f, %f)\n", changeH.dx, changeH.dy, changeH.dz);
+    //printf("changeH: (%f, %f, %f)\n", changeH.dx, changeH.dy, changeH.dz);
 
-    printf("changeV:  (%f, %f, %f)\n", changeV.dx, changeV.dy, changeV.dz);
+    //printf("changeV:  (%f, %f, %f)\n", changeV.dx, changeV.dy, changeV.dz);
     // loops through the size of the image to set each pixel value and write to the file
     for(int i = 0; i < numHeight; i++){
         
@@ -83,35 +83,30 @@ int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorT
 
             Vector row = scalarVecMult(j, &changeH);
             
-            printf("row: (%f, %f, %f)\n", row.dx, row.dy, row.dz);
+            //printf("row: (%f, %f, %f)\n", row.dx, row.dy, row.dz);
 
             Vector col = scalarVecMult(i, &changeV);
             Vector sum1 = vectorAdd(&camera->upperLeftCorner, &row);
-            printf("sum1: (%f, %f, %f)\n", sum1.dx, sum1.dy, sum1.dz);
+            //printf("sum1: (%f, %f, %f)\n", sum1.dx, sum1.dy, sum1.dz);
 
             Vector viewingPoint = vectorAdd(&sum1, &col);
             Vector direction = vectorAdd(&viewingPoint, &negOrigin);
-            printf("viewingPoint: (%f, %f, %f)\n", viewingPoint.dx, viewingPoint.dy, viewingPoint.dz);
-            setDirection(&ray, viewingPoint.dx, viewingPoint.dy, viewingPoint.dz); 
+            direction = normalize(&direction);
+            //printf("viewingPoint: (%f, %f, %f)\n", viewingPoint.dx, viewingPoint.dy, viewingPoint.dz);
+            setDirection(&ray, direction.dx, direction.dy, direction.dz); 
              
-            ColorType* intersectColor = traceRay(&ray, sphere, backgroundColor);
-            /*
-                change h = (UR - UL)/(width-1) : vector
-                point in viewing window = UL + i * change in v + j * change in h 
-
-                ray equation = origin + t*(point in viewing window -  origin); 
-
-            */
-
+            ColorType* intersectColor = traceRay(&ray, sphereArray[0], backgroundColor);
 
              
-            printColor(intersectColor);
+            //printColor(intersectColor);
             r = 255 * intersectColor->r;
             g = 255 * intersectColor->g;
             b = 255 * intersectColor->b; 
 
 
-
+            printf("r: %d\n", r);
+            printf("g: %d\n", g);
+            printf("b: %d\n", b);
             if(j%9 == 0){
                 if(sprintf(numChar, "%d %d %d\n", r, g, b) == -1){
                     printf("sprintf failed in writeRandomBody\n");
@@ -144,7 +139,9 @@ int main(){
     char buf[20];
     char* delimiter1 = " ";
     char* delimiter2 = "\n";
-
+    char* delimiter3 = "\n\n";
+    int m = 0; //shape tag;
+    SphereType* sphereArray[10];
 
     while(1){
         printf("input text file: ");
@@ -167,131 +164,130 @@ int main(){
             return 1;
         }
 
-        char *token = strtok(buf2, delimiter1);
-        if(strcmp(token, "imsize") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
 
-        //width and height
-        char *width = strtok(NULL, delimiter1);
-        char *height = strtok(NULL, delimiter2);
-        // width and height
+        // start big if statement here
 
-        // eye location
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "eye") != 0){
-            printf("invalid text format\n");
-            return 1;
+
+        char* token = strtok(buf2, delimiter1);
+        char* width;
+        char* height;
+
+        float eyeX;
+        float eyeY;
+        float eyeZ;
+
+        float viewDirX;
+        float viewDirY;
+        float viewDirZ;
+
+        float vfov;
+
+        float updirX;
+        float updirY;
+        float updirZ;
+
+        float bcX;
+        float bcY;
+        float bcZ;
+
+        float cX;
+        float cY;
+        float cZ;
+
+        float X;
+        float Y;
+        float Z;
+        float r;       
+        while(token != NULL){
+            printf("%s\n", token);
+            if(strcmp(token, "imsize") == 0){
+                //width and height
+                // width and height
+                width = strtok(NULL, delimiter1);
+                height = strtok(NULL, delimiter2);
+            }
+            else if(strcmp(token, "eye") == 0){
+                eyeX = strtof(strtok(NULL, delimiter1), NULL);
+                eyeY = strtof(strtok(NULL, delimiter1), NULL);
+                eyeZ = strtof(strtok(NULL, delimiter2), NULL);
+                
+            }
+            else if(strcmp(token, "viewdir") == 0){
+                viewDirX = strtof(strtok(NULL, delimiter1), NULL);
+                viewDirY = strtof(strtok(NULL, delimiter1), NULL);
+                viewDirZ = strtof(strtok(NULL, delimiter2), NULL);
+            }
+            else if(strcmp(token, "vfov") == 0){
+                vfov = strtof(strtok(NULL, delimiter2), NULL); 
+            }
+            else if(strcmp(token, "updir") == 0){
+                updirX = strtof(strtok(NULL, delimiter1), NULL);
+                updirY = strtof(strtok(NULL, delimiter1), NULL);
+                updirZ = strtof(strtok(NULL, delimiter2), NULL);
+            }
+            else if(strcmp(token, "bkgcolor") == 0){
+                bcX = strtof(strtok(NULL, delimiter1), NULL);
+                bcY = strtof(strtok(NULL, delimiter1), NULL);
+                bcZ = strtof(strtok(NULL, delimiter2), NULL);
+            }
+            else if((strcmp(token, "mtlcolor") == 0) || (strcmp(token, "\nmtlcolor") == 0)){
+                cX = strtof(strtok(NULL, delimiter1), NULL);
+                cY = strtof(strtok(NULL, delimiter1), NULL);
+                cZ = strtof(strtok(NULL, delimiter2), NULL);
+                printf("mtlColor: (%f, %f, %f)\n", cX, cY, cZ);
+                token = strtok(NULL, delimiter1);
+        
+
+                if(strcmp(token, "sphere") == 0){
+                    X = strtof(strtok(NULL, delimiter1), NULL);
+                    Y = strtof(strtok(NULL, delimiter1), NULL);
+                    Z = strtof(strtok(NULL, delimiter1), NULL);
+                    r = strtof(strtok(NULL, delimiter2), NULL);
+
+                    SphereType* sphere = malloc(sizeof(SphereType));
+                    initializeSphere(sphere, X, Y, Z, r, m);
+                    setColor(sphere, cX, cY, cZ);
+                    sphereArray[m] = sphere;
+                    m++;
+                    printf("%d\n", m);
+
+                }
+                // token = strtok(NULL, delimiter2);
+                // printf("hopefully a new line %s", token);
+            }
+            token = strtok(NULL, delimiter1);
+            // printf("this is current token %s\n", token);
         }
-        float eyeX = strtof(strtok(NULL, delimiter1), NULL);
-        float eyeY = strtof(strtok(NULL, delimiter1), NULL);
-        float eyeZ = strtof(strtok(NULL, delimiter2), NULL);
+        m = 0;
+
+
         initialize_camera(camera, eyeX, eyeY, eyeZ);
-        // eye location
-
-
-        //aspect ratio
-
-        setAspectRatio(camera, strtof(width, NULL), strtof(height, NULL));
-        // view direction
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "viewdir") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float viewDirX = strtof(strtok(NULL, delimiter1), NULL);
-        float viewDirY = strtof(strtok(NULL, delimiter1), NULL);
-        float viewDirZ = strtof(strtok(NULL, delimiter2), NULL);
         setViewingDirection(camera, viewDirX, viewDirY, viewDirZ);
-        //view direction
-
-        //vFOV
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "vfov") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float vfov = strtof(strtok(NULL, delimiter2), NULL);
         setVericalFOV(camera, vfov);
-        //vFOV
+        setUpVector(camera, updirX, updirY, updirZ);
+        setAspectRatio(camera, strtof(width, NULL), strtof(height, NULL));
+        defineImageCoordinates(camera);
+        setViewingWindow(camera, 3);
+        initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
-        //up vector
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "updir") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float updirx = strtof(strtok(NULL, delimiter1), NULL);
-        float updirY = strtof(strtok(NULL, delimiter1), NULL);
-        float updirZ = strtof(strtok(NULL, delimiter2), NULL);
-        setUpVector(camera, updirx, updirY, updirZ);
-        //up vector
+        // printSphere(sphereArray[0]);
+        // printSphere(sphereArray[1]);
 
 
         // all the information has been collected to define image coordinates
 
-        defineImageCoordinates(camera);
-        setViewingWindow(camera, 3);
+        
+        
         //****************************************************************** */
-
-        //background color
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "bkgcolor") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float bcX = strtof(strtok(NULL, delimiter1), NULL);
-        float bcY = strtof(strtok(NULL, delimiter1), NULL);
-        float bcZ = strtof(strtok(NULL, delimiter2), NULL);
-        // ////////////////////////////add color functionality
-        //background color
-
-        initializeColorType(backgroundColor, bcX, bcY, bcZ);
-
-
-        // color of object
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "mtlcolor") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float cX = strtof(strtok(NULL, delimiter1), NULL);
-        float cY = strtof(strtok(NULL, delimiter1), NULL);
-        float cZ = strtof(strtok(NULL, delimiter2), NULL);
-        // color of object
-
-        // type of object
-        token = strtok(NULL, delimiter1);
-        printf("%s\n", token);
-        if(strcmp(token, "sphere") != 0){
-            printf("invalid text format\n");
-            return 1;
-        }
-        float X = strtof(strtok(NULL, delimiter1), NULL);
-        float Y = strtof(strtok(NULL, delimiter1), NULL);
-        float Z = strtof(strtok(NULL, delimiter1), NULL);
-        float r = strtof(strtok(NULL, delimiter2), NULL);
-        printf("radius: %f", r); 
-        // type of object
-
-        SphereType sphere;
-        initializeSphere(&sphere, X, Y, Z, r);
-        setColor(&sphere, cX, cY, cZ);
-
+       
+        
         char* ppm = strtok(buf, ".");
         ppm = strcat(ppm, ".ppm");
         printf("Your new file is : %s\n", ppm);
         
         FILE* ppmFile = fopen(ppm, "w");
         writeHeader(ppmFile, width, height);
-        writeBackground(ppmFile, camera, width, height, backgroundColor, &sphere);
+        writeBackground(ppmFile, camera, width, height, backgroundColor, sphereArray);
         fclose(ppmFile);
 
 

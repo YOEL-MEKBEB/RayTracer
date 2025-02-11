@@ -68,7 +68,7 @@ void setViewingWindow(Camera* camera, float d){
     Vector posHeight = scalarVecMult(height/2, &camera->v);
 
     
-    printf("negWidth: (%f, %f, %f)\n", negWidth.dx, negWidth.dy, negWidth.dz);
+   // printf("negWidth: (%f, %f, %f)\n", negWidth.dx, negWidth.dy, negWidth.dz);
 
 
 

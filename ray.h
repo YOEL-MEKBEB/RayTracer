@@ -17,13 +17,6 @@ void initializeRayType(RayType *ray, float x, float y, float z);
 // sets the direction of the ray
 void setDirection(RayType *ray, float dx, float dy, float dz);
 
-// returns the dot product between the 2 rays
-float rayDotProduct(RayType *ray1, RayType *ray2);
-
-// returns the cross product between ray1 x ray2
-// assumes that ray1 and ray2 are at the origin
-RayType* rayCrossProduct(RayType *ray1, RayType *ray2);
-
 // returns the sum of the 2 rays 
 RayType* RaySum(RayType *ray1, RayType *ray2);
 
