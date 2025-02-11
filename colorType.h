@@ -16,3 +16,5 @@ ColorType* traceRay(RayType *ray, SphereType* sphere, ColorType* backgroundColor
 /// @param parameter for now it's the type of shape the intersection is.
 /// @return returns the color obtained
 ColorType shadeRay(char* parameter);
+
+void printColor(ColorType* color);

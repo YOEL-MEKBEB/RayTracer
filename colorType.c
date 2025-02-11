@@ -53,10 +53,13 @@ ColorType* traceRay(RayType *ray, SphereType* sphere, ColorType* backgroundColor
 
         ColorType* color = malloc(sizeof(ColorType));
         initializeColorType(color, sphere->r, sphere->g, sphere->b);
-
         return color;
     }
 }
 
 
 // ColorType shadeRay(char* parameter);
+
+void printColor(ColorType* color){
+    printf("color: (%f, %f, %f)", color->r, color->g, color->b);    
+}

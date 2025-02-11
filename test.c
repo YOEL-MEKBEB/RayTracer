@@ -5,6 +5,7 @@
 #include "colorType.h"
 #include "shapes.h"
 #include "vector.h"
+#include <stdio.h>
 
 
 int writeHeader(FILE* file, char* width, char* height){
@@ -92,9 +93,8 @@ int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorT
             Vector direction = vectorAdd(&viewingPoint, &negOrigin);
             printf("viewingPoint: (%f, %f, %f)\n", viewingPoint.dx, viewingPoint.dy, viewingPoint.dz);
             setDirection(&ray, viewingPoint.dx, viewingPoint.dy, viewingPoint.dz); 
-
-            printRay(&ray);
-
+             
+            ColorType* intersectColor = traceRay(&ray, sphere, backgroundColor);
             /*
                 change h = (UR - UL)/(width-1) : vector
                 point in viewing window = UL + i * change in v + j * change in h 
@@ -105,10 +105,10 @@ int writeBackground(FILE* file,Camera* camera, char* width, char* height, ColorT
 
 
              
-
-
-
-
+            printColor(intersectColor);
+            r = 255 * intersectColor->r;
+            g = 255 * intersectColor->g;
+            b = 255 * intersectColor->b; 
 
 
 
@@ -262,9 +262,9 @@ int main(){
             printf("invalid text format\n");
             return 1;
         }
-        char *cX = strtok(NULL, delimiter1);
-        char *cY = strtok(NULL, delimiter1);
-        char *cZ = strtok(NULL, delimiter2);
+        float cX = strtof(strtok(NULL, delimiter1), NULL);
+        float cY = strtof(strtok(NULL, delimiter1), NULL);
+        float cZ = strtof(strtok(NULL, delimiter2), NULL);
         // color of object
 
         // type of object
@@ -277,11 +277,13 @@ int main(){
         float X = strtof(strtok(NULL, delimiter1), NULL);
         float Y = strtof(strtok(NULL, delimiter1), NULL);
         float Z = strtof(strtok(NULL, delimiter1), NULL);
-        float r = strtof(strtok(NULL, delimiter1), NULL);
+        float r = strtof(strtok(NULL, delimiter2), NULL);
+        printf("radius: %f", r); 
         // type of object
 
         SphereType sphere;
         initializeSphere(&sphere, X, Y, Z, r);
+        setColor(&sphere, cX, cY, cZ);
 
         char* ppm = strtok(buf, ".");
         ppm = strcat(ppm, ".ppm");

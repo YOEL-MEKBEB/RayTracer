@@ -17,7 +17,7 @@ float rayDotProduct(RayType *ray1, RayType *ray2){
 
 
 void setDirection(RayType *ray, float dx, float dy, float dz){
-     ray->dx = dx;
+    ray->dx = dx;
     ray->dy = dy;
     ray->dz = dz;
 }
