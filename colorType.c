@@ -86,61 +86,13 @@ ColorType traceRay(RayType *ray, SphereType** sphereArray,int sizeOfArray,  Colo
     printf("min index: %d\n", minIndex);
     initializeColorType(&color, sphereArray[minIndex]->r, sphereArray[minIndex]->g, sphereArray[minIndex]->b);
     return color;
-        // printf("%d\n", i);
-        // printSphere(sphere);
-        //printRay(ray);
-        
-
-
-    // if((pow(B,2) - 4 * A * C) < 0){
-    //     return backgroundColor;
-    // }else if((pow(B,2) - 4 * A * C) == 0){
-    //     t = (-1 * B)/(2*A);
-
-    //     // will be used for later iterations.
-    //     Vector pointOfSphere;
-    //     initialize_vector(&pointOfSphere, ray->x + t * ray->dx, ray->y + t * ray->dy, ray->z + t * ray->dz);
-    //     ///////////////
-
-    //     ColorType* color = malloc(sizeof(ColorType));
-    //     initializeColorType(color, sphere->r, sphere->g, sphere->b);
-
-    //     return color;
-        
-    // }else{
-    //     float t1 = (-1 * B + sqrt((pow(B,2) - 4 * A * C)))/(2*A);
-    //     float t2 = (-1 * B - sqrt((pow(B,2) - 4 * A * C)))/(2*A);
-
-    //     t = 0;
-    //     if(t1 < 0 && t2 < 0){
-    //         return backgroundColor;
-    //     }else if (t1 < 0 && t2 > 0){
-    //         t = t2;
-    //     }else if(t1 > 0 && t2 < 0){
-    //         t = t1;
-    //     }else{
-    //         if(t1 < t2){
-    //             t = t1;
-    //         }else{
-    //             t = t2;
-    //         }
-    //     }
-
-    //     // only usefull for future iteration
-    //     Vector pointOfSphere;
-    //     initialize_vector(&pointOfSphere, ray->x + t * ray->dx, ray->y + t * ray->dy, ray->z + t * ray->dz);
-    //     ///////////////
-
-    //     ColorType* color = malloc(sizeof(ColorType));
-    //     initializeColorType(color, sphere->r, sphere->g, sphere->b);
-    //     return color;
-    // }
+             
 }
 
 
-ColorType shadeRay(char* parameter){
+// ColorType shadeRay(char* parameter){
     
-}
+// }
 
 void printColor(ColorType* color){
     printf("color: (%f, %f, %f)\n", color->r, color->g, color->b);    
