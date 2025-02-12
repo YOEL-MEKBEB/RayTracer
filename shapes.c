@@ -18,8 +18,6 @@ void setColor(SphereType* sphere, float r, float g, float b){
     sphere->r = r;
     sphere->g = g;
     sphere->b = b;
-    printf("setColor: (%f, %f, %f)\n", r, g, b);
-    printf("setColor2: (%f, %f, %f)\n", sphere->r,sphere-> g, sphere->b);
 }
 
 void printSphere(SphereType *sphere){
