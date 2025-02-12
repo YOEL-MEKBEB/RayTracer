@@ -11,6 +11,7 @@ Vector vectorAdd(Vector* vector1, Vector* vector2){
     initialize_vector(&sum, vector1->dx + vector2->dx, vector1->dy + vector2->dy, vector1->dz + vector2->dz);
     return sum;
 }
+
 float dotProduct(Vector* vector1, Vector* vector2){
     return vector1->dx * vector2->dx + vector1->dy * vector2->dy + vector1->dz * vector2->dz;
 }
@@ -24,6 +25,7 @@ Vector crossProduct(Vector* vector1, Vector* vector2){
     initialize_vector(&product, x, y, z);
     return product;
 }
+
 float vectorLength(Vector* vector){
     return sqrt(pow(vector->dx, 2) + pow(vector->dy, 2) + pow(vector->dz, 2));
 }
@@ -38,5 +40,8 @@ Vector scalarVecMult(float scalar, Vector *vector){
     return result;
 }
 Vector normalize(Vector* vector){
+    if(vectorLength(vector)==0){
+        return *vector;
+    }
     return scalarVecMult(1/(vectorLength(vector)), vector);
 }
