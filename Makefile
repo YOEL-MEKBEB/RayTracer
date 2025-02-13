@@ -21,5 +21,7 @@ colorType.o: colorType.h colorType.c
 
 shapes.o: shapes.h shapes.c
 	$(CC) -c shapes.c
-clean: 
+clean:
 	rm *.o test
+run:
+	./test
