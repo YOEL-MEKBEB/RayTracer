@@ -12,3 +12,5 @@
 ```make```
 #### and it will compile everything needed. and run it by typing 
 ```make run```
+
+#### to quit the program just type q and press enter.
