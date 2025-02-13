@@ -1,9 +1,18 @@
 #include "vector.h"
 
-void initialize_vector(Vector* vector, float dx, float dy, float dz){
+int initialize_vector(Vector* vector, float dx, float dy, float dz){
+
+    if(isnan(dx) || isnan(dy) || isnan(dz)){
+        printf("dx, dy, or dz is not a number\n");
+        return -1;
+    }
+
+
+    
     vector->dx = dx;
     vector->dy = dy;
     vector->dz = dz;
+    return 0;
 }
 
 Vector vectorAdd(Vector* vector1, Vector* vector2){
@@ -36,6 +45,9 @@ Vector scalarVecMult(float scalar, Vector *vector){
     float dy = scalar * vector->dy;
     float dz = scalar * vector->dz;
 
+    if(scalar == NAN){
+        printf("scalar is not a number"); 
+    }
     initialize_vector(&result, dx, dy, dz);
     return result;
 }

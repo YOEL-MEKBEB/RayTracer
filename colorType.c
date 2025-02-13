@@ -23,6 +23,11 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         sphere = sphereArray[i];
 
         A = pow(ray->dx, 2) + pow(ray->dy, 2) + pow(ray->dz, 2);
+        if (A == 0) {
+            printf("ray has a 0 vector for it's direction");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
+        }
         B = 2 * (ray->x - sphere->x) * ray->dx + 2 * (ray->y - sphere->y) * ray->dy +
             2 * (ray->z - sphere->z) * ray->dz;
         C = pow((ray->x - sphere->x), 2) + pow((ray->y - sphere->y), 2) +

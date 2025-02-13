@@ -1,7 +1,13 @@
 #include "shapes.h"
 
 #include "stdio.h"
-void initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m){
+#include <math.h>
+int initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m){
+
+    if(isnan(x) || isnan(y) || isnan(z) || isnan(radius)){
+        printf("sphere coordinates are not a number\n");
+        return -1;
+    }
     sphere->x = x;
     sphere->y = y;
     sphere->z = z;
@@ -11,13 +17,20 @@ void initializeSphere(SphereType* sphere, float x, float y, float z, float radiu
     sphere->r = 0.0;
     sphere->g = 0.0;
     sphere->b = 0.0;
+    return 0;
 
 }
 
-void setColor(SphereType* sphere, float r, float g, float b){
+int setColor(SphereType* sphere, float r, float g, float b){
+
+    if(isnan(r) || isnan(g) || isnan(b)){
+        printf("colors are not a number\n");
+        return -1;
+    }
     sphere->r = r;
     sphere->g = g;
     sphere->b = b;
+    return 0;
 }
 
 void printSphere(SphereType *sphere){

@@ -15,14 +15,14 @@ typedef struct {
 /// @param z z coordinate of the center
 /// @param radius radius of the sphere
 /// @param m a tag used for identification and debugging
-void initializeSphere(SphereType *sphere, float x, float y, float z, float radius, int m);
+int initializeSphere(SphereType *sphere, float x, float y, float z, float radius, int m);
 
 /// @brief sets the color of the sphere
 /// @param sphere a pointer to a sphere
 /// @param r the red color value
 /// @param g the green color value
 /// @param b the blue color value
-void setColor(SphereType *sphere, float r, float g, float b);
+int setColor(SphereType *sphere, float r, float g, float b);
 
 /// @brief prints the attributes of the sphere to the console for debuggin
 /// @param sphere a sphere pointer

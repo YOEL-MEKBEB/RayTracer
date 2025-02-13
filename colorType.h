@@ -8,7 +8,8 @@ typedef struct {
 void initializeColorType(ColorType *color, float r, float g, float b);
 /// @brief calculates the whether the ray intersects an object
 /// @param ray a RayType containing the origin and the direction of the ray
-/// @return returns the color obtained from the intersection or the background color
+/// @return returns the color obtained from the intersection or the background color. returns a
+/// color with values of -1 to indicate error
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                    ColorType *backgroundColor);
 

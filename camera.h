@@ -34,7 +34,7 @@ typedef struct {
 /// @param viewOriginX x location of the camera
 /// @param viewOriginY y location of the camera
 /// @param viewOriginZ z location of the camera
-void initialize_camera(Camera *camera, float viewOriginX, float viewOriginY, float viewOriginZ);
+int initialize_camera(Camera *camera, float viewOriginX, float viewOriginY, float viewOriginZ);
 
 /// @brief set up the up vector as long as it's not a 0 vector
 /// @param camera a camera pointer
@@ -56,12 +56,12 @@ int setViewingDirection(Camera *camera, float viewDirectionX, float viewDirectio
 /// @brief set the horizontal field of view in degrees
 /// @param camera
 /// @param horizontalFOV
-void setHorizontalFOV(Camera *camera, float horizontalFOV);
+int setHorizontalFOV(Camera *camera, float horizontalFOV);
 
 /// @brief  set the vertical field of view in degrees
 /// @param camera
 /// @param verticalFOV
-void setVericalFOV(Camera *camera, float verticalFOV);
+int setVericalFOV(Camera *camera, float verticalFOV);
 
 /// @brief calculates the values of u and v given that the view direction
 // and the up vector are provided
@@ -72,7 +72,7 @@ void defineImageCoordinates(Camera *camera);
 /// @param camera
 /// @param width
 /// @param height
-void setAspectRatio(Camera *camera, float width, float height);
+int setAspectRatio(Camera *camera, float width, float height);
 
 /// @brief create a viewing window for shooting rays.
 /// @param camera

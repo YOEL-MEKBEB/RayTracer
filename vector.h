@@ -13,7 +13,8 @@ typedef struct {
 /// @param dx x coordinate of the vector
 /// @param dy y coordinate of the vector
 /// @param dz z coordinate of the vector
-void initialize_vector(Vector *vector, float dx, float dy, float dz);
+/// @return returns 0 on success and -1 on failure
+int initialize_vector(Vector *vector, float dx, float dy, float dz);
 
 /// @brief calculates the sum of the 2 vectors provided on success
 /// @param vector1

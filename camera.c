@@ -1,10 +1,10 @@
 #include "camera.h"
 
-void initialize_camera(Camera *camera, float viewOriginX, float viewOriginY, float viewOriginZ) {
+int initialize_camera(Camera *camera, float viewOriginX, float viewOriginY, float viewOriginZ) {
     // camera->viewOriginX = viewOriginX;
     // camera->viewOriginY = viewOriginY;
     // camera->viewOriginZ = viewOriginZ;
-    initialize_vector(&camera->viewOrigin, viewOriginX, viewOriginY, viewOriginZ);
+    return initialize_vector(&camera->viewOrigin, viewOriginX, viewOriginY, viewOriginZ);
 }
 
 int setUpVector(Camera *camera, float upX, float upY, float upZ) {
@@ -12,7 +12,10 @@ int setUpVector(Camera *camera, float upX, float upY, float upZ) {
     // camera->upY = upY;
     // camera->upZ = upZ;
     Vector up;
-    initialize_vector(&up, upX, upY, upZ);
+    if(initialize_vector(&up, upX, upY, upZ) == -1){
+      printf("up Vector contains a non number value\n");
+      return -1;
+    }
     if (vectorLength(&up) == 0) {
         return -1;
     }
@@ -26,7 +29,10 @@ int setViewingDirection(Camera *camera, float viewDirectionX, float viewDirectio
     // camera->viewDirectionY = viewDirectionY;
     // camera->viewDirectionZ = viewDirectionZ;
     Vector view;
-    initialize_vector(&view, viewDirectionX, viewDirectionY, viewDirectionZ);
+    if(initialize_vector(&view, viewDirectionX, viewDirectionY, viewDirectionZ)==-1){
+      printf("up vector conatains a non number value\n");
+      return -1;
+    }
     if (vectorLength(&view) == 0) {
         return -1;
     }
@@ -35,13 +41,21 @@ int setViewingDirection(Camera *camera, float viewDirectionX, float viewDirectio
 }
 
 // set the horizontal field of view in degrees
-void setHorizontalFOV(Camera *camera, float horizontalFOV) {
+int setHorizontalFOV(Camera *camera, float horizontalFOV) {
+    if(isnan(horizontalFOV)){
+      return -1;
+    }
     camera->horizontalFOV = horizontalFOV;
+    return 0;
 }
 
 // set the vertical field of view in degrees
-void setVericalFOV(Camera *camera, float verticalFOV) {
+int setVericalFOV(Camera *camera, float verticalFOV) {
+    if(isnan(verticalFOV)){
+      return -1;
+    }
     camera->verticalFOV = verticalFOV;
+    return 0;
 }
 
 void defineImageCoordinates(Camera *camera) {
@@ -54,8 +68,12 @@ void defineImageCoordinates(Camera *camera) {
     camera->v = normalize(&vertical);
 }
 
-void setAspectRatio(Camera *camera, float width, float height) {
+int setAspectRatio(Camera *camera, float width, float height) {
+    if(width == NAN || height == NAN){
+      return -1;
+    }
     camera->aspectRatio = width / height;
+    return 0;
 }
 
 void setViewingWindow(Camera *camera, float d) {
