@@ -12,9 +12,9 @@ int setUpVector(Camera *camera, float upX, float upY, float upZ) {
     // camera->upY = upY;
     // camera->upZ = upZ;
     Vector up;
-    if(initialize_vector(&up, upX, upY, upZ) == -1){
-      printf("up Vector contains a non number value\n");
-      return -1;
+    if (initialize_vector(&up, upX, upY, upZ) == -1) {
+        printf("up Vector contains a non number value\n");
+        return -1;
     }
     if (vectorLength(&up) == 0) {
         return -1;
@@ -29,9 +29,9 @@ int setViewingDirection(Camera *camera, float viewDirectionX, float viewDirectio
     // camera->viewDirectionY = viewDirectionY;
     // camera->viewDirectionZ = viewDirectionZ;
     Vector view;
-    if(initialize_vector(&view, viewDirectionX, viewDirectionY, viewDirectionZ)==-1){
-      printf("up vector conatains a non number value\n");
-      return -1;
+    if (initialize_vector(&view, viewDirectionX, viewDirectionY, viewDirectionZ) == -1) {
+        printf("up vector conatains a non number value\n");
+        return -1;
     }
     if (vectorLength(&view) == 0) {
         return -1;
@@ -42,8 +42,8 @@ int setViewingDirection(Camera *camera, float viewDirectionX, float viewDirectio
 
 // set the horizontal field of view in degrees
 int setHorizontalFOV(Camera *camera, float horizontalFOV) {
-    if(isnan(horizontalFOV)){
-      return -1;
+    if (isnan(horizontalFOV)) {
+        return -1;
     }
     camera->horizontalFOV = horizontalFOV;
     return 0;
@@ -51,8 +51,8 @@ int setHorizontalFOV(Camera *camera, float horizontalFOV) {
 
 // set the vertical field of view in degrees
 int setVericalFOV(Camera *camera, float verticalFOV) {
-    if(isnan(verticalFOV)){
-      return -1;
+    if (isnan(verticalFOV)) {
+        return -1;
     }
     camera->verticalFOV = verticalFOV;
     return 0;
@@ -69,15 +69,15 @@ void defineImageCoordinates(Camera *camera) {
 }
 
 int setAspectRatio(Camera *camera, float width, float height) {
-    if(width == NAN || height == NAN){
-      return -1;
+    if (width == NAN || height == NAN) {
+        return -1;
     }
     camera->aspectRatio = width / height;
     return 0;
 }
 
 void setViewingWindow(Camera *camera, float d) {
-    float height = 2 * d * tan(camera->verticalFOV / 2);
+    float height = 2 * d * tan(camera->verticalFOV * M_PI / (180 * 2));
 
     float width = camera->aspectRatio * height;
 
