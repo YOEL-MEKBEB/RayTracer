@@ -141,6 +141,7 @@ float protectedStrToF(char *token) {
     return value;
 }
 
+
 int main() {
     Camera *camera = malloc(sizeof(Camera));
     ColorType *backgroundColor = malloc(sizeof(ColorType));
@@ -248,6 +249,7 @@ int main() {
                     // printf("in Sphere: %f\n", r);
 
                     SphereType *sphere = malloc(sizeof(SphereType));
+                    //SphereType sphere;
                     if(initializeSphere(sphere, X, Y, Z, r, m) == -1){
                         return 1;
                     }
@@ -334,6 +336,9 @@ int main() {
 
         printCamera(camera);
         fclose(inputFile);
+        for(int i = 0; i < length; i++){
+            free(sphereArray[i]);
+        }
     }
 
     free(camera);

@@ -18,7 +18,7 @@ void initializeRayType(RayType *ray, float x, float y, float z);
 void setDirection(RayType *ray, float dx, float dy, float dz);
 
 // returns the sum of the 2 rays 
-RayType* RaySum(RayType *ray1, RayType *ray2);
+// RayType* RaySum(RayType *ray1, RayType *ray2);
 
 // multiplies the scalar value provided with the ray and returns the new vector
 RayType* scalarRayMult(float scalar, RayType *ray);

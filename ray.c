@@ -19,18 +19,18 @@ void setDirection(RayType *ray, float dx, float dy, float dz){
     ray->dz = dz;
 }
 
-RayType* RaySum(RayType *ray1, RayType *ray2){
-    RayType* sum = malloc(sizeof(RayType));
-    sum->x = ray1->x;
-    sum->y = ray1->y;
-    sum->z = ray1->z;
+// RayType* RaySum(RayType *ray1, RayType *ray2){
+//     RayType* sum = malloc(sizeof(RayType));
+//     sum->x = ray1->x;
+//     sum->y = ray1->y;
+//     sum->z = ray1->z;
 
-    sum->dx = ray1->dx + ray2->dx;
-    sum->dy = ray1->dy + ray2->dy;
-    sum->dz = ray1->dz + ray2->dz;
+//     sum->dx = ray1->dx + ray2->dx;
+//     sum->dy = ray1->dy + ray2->dy;
+//     sum->dz = ray1->dz + ray2->dz;
 
-    return sum;
-}
+//     return sum;
+// }
 
 RayType* scalarRayMult(float scalar, RayType *ray){
     RayType* result = ray;
