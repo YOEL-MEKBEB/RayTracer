@@ -1,6 +1,10 @@
 #include "colorType.h"
 
+#include "ray.h"
+#include "shapes.h"
 #include "stdlib.h"
+#include "vector.h"
+#include <math.h>
 
 void initializeColorType(ColorType *color, float r, float g, float b) {
     color->r = r;
@@ -9,13 +13,17 @@ void initializeColorType(ColorType *color, float r, float g, float b) {
 }
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor) {
+                   ColorType *backgroundColor, Light* light) {
+    
     // printf("%d\n", sizeOfArray);
     SphereType *sphere;
     float A;
     float B;
     float C;
     float t[sizeOfArray];
+
+    Vector pointOfSphere;
+    // printRay(ray);
 
     ColorType color;
     int minIndex = 0;
@@ -41,7 +49,6 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
             t[i] = (-1 * B) / (2 * A);
 
             // will be used for later iterations.
-            Vector pointOfSphere;
             initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
                               ray->z + t[i] * ray->dz);
             ///////////////
@@ -65,14 +72,9 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                 }
             }
 
-            // only usefull for future iteration
-            Vector pointOfSphere;
             initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
                               ray->z + t[i] * ray->dz);
-            ///////////////
 
-            // initializeColorType(&color, sphere->r, sphere->g, sphere->b);
-            // return color;
         }
     }
     // printf("tmin: %f\n", t[minIndex]);
@@ -80,7 +82,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         if (t[i] > -1 && t[minIndex] == -1) {
             minIndex = i;
         }
-        // this is where the logic breaks
+    
         if (t[i] < t[minIndex] && t[i] > -1) {
             minIndex = i;
         }
@@ -90,14 +92,142 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         return *backgroundColor;
     }
 
-    initializeColorType(&color, sphereArray[minIndex]->r, sphereArray[minIndex]->g,
-                        sphereArray[minIndex]->b);
+    // initializeColorType(&color, sphereArray[minIndex]->r, sphereArray[minIndex]->g,
+    //                     sphereArray[minIndex]->b);
+    color = shadeRay("Sphere", sphereArray[minIndex], ray, &pointOfSphere, light);
     return color;
 }
 
-// ColorType shadeRay(char* parameter){
+ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light){
+    ColorType color;
+    Vector intrinsicColor;
+    Vector specularColor;
+    Vector negSphereCenter;
+    // Vector sphereSurface;
+    Vector rayOrigin;
+    Vector diffuseTerm;
+    Vector V;
+    Vector L;
+    Vector H;
 
-// }
+
+    // printRay(ray);
+    // printVector(surfacePoint);
+    // printVector(&light->lightLocation);
+
+    
+    if(initialize_vector(&negSphereCenter, -1 * sphere->x, -1 * sphere->y, -1 * sphere->z) == -1){
+        printf("it died");
+    }
+    // initialize_vector(&sphereSurface, x, y, z);
+    Vector rN = vectorAdd(surfacePoint, &negSphereCenter);
+    Vector N = scalarVecMult(1.0/sphere->radius, &rN);
+    // printf("N: ");
+    // printVector(&N);
+    initialize_vector(&rayOrigin, ray->x, ray->y, ray->z);
+    Vector negSphereSurface = scalarVecMult(-1.0, surfacePoint);
+
+    
+    if(light->isPoint){
+        // printf("LightLocation: (%f, %f, %f)", light->lightLocation.dx, light->lightLocation.dy, light->lightLocation.dz);
+        L = vectorAdd(&light->lightLocation, &negSphereSurface);
+        L = normalize(&L);
+        
+    }else {
+        L = scalarVecMult(-1, &light->lightLocation);
+        L = normalize(&L);
+    }
+
+    // printf("L: ");
+    // printVector(&L);
+    
+
+    V = vectorAdd(&rayOrigin, &negSphereSurface);
+    V = normalize(&V);
+
+    // printf("V: ");
+    // printVector(&V);
+    H = vectorAdd(&L, &V);
+    H = normalize(&H);
+
+    
+    if(initialize_vector(&intrinsicColor, sphere->Odr, sphere->Odg, sphere->Odb) == -1){
+        printf("it actually died here\n");
+    }
+    if(initialize_vector(&specularColor, sphere->Osr, sphere->Osg, sphere->Osb) == -1){
+        printf("probably not here then\n");
+    }
+
+    Vector ambientTerm = scalarVecMult(sphere->ka, &intrinsicColor);
+    // printf("N: ");
+    // printVector(&N);
+    // printf("H: ");
+    // printVector(&H);
+
+    float nDotL = dotProduct(&N, &L);
+    float nDotH = dotProduct(&N, &H);
+
+    // printf("nDOtL: %f\n", nDotL);
+
+    if(acos(nDotL) > M_PI/2){
+        initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
+        // printf("%f\n", acos(nDotL));
+        // printf("actually reached here\n");
+    }else{
+        
+        // printf("%f\n", acos(nDotL));
+        diffuseTerm = scalarVecMult(sphere->kd * nDotL, &intrinsicColor);
+    }
+    // printf("Shiny Factor: %d\n", sphere->shinyFactor);
+
+    // printf("error is here\n");
+    //
+    Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
+    // if(nDotH > 0){
+        
+    //     printf("nDotH: %f\n", nDotH);
+    //     printVector(&specularTerm);
+    //     printf("power: %f\n", pow(fmax(0.0, sphere->ks * nDotH),sphere->shinyFactor));
+    // }
+
+    // printf("ks = %f",sphere->ks);
+
+        // printVector(&ambientTerm);
+        // printVector(&diffuseTerm);
+        // printVector(&specularTerm);
+    
+    Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
+
+    sum1 = scalarVecMult(light->lightIntensity, &sum1);
+    Vector sum2 = vectorAdd(&sum1, &ambientTerm);
+    
+    initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);
+    // if(color.r < 0){
+    //     color.r = 0;
+    // }
+    // if(color.g < 0){
+    //     color.g = 0;
+    // }
+    // if(color.b < 0){
+    //     color.b = 0;
+    // }
+
+    if(color.r > 1){
+        color.r = 1;
+    }
+    if(color.g > 1){
+        color.g = 1;
+    }
+    if(color.b > 1){
+        color.b = 1;
+    }
+    // printColor(&color);
+    // printf("error is definitely here\n");
+    
+    
+    return color;
+
+}
 
 void printColor(ColorType *color) {
     printf("color: (%f, %f, %f)\n", color->r, color->g, color->b);

@@ -49,4 +49,6 @@ Vector scalarVecMult(float scalar, Vector *vector);
 /// @param vector
 /// @return returns a new vector. If a 0 vector is provided then the vector is returned as is
 Vector normalize(Vector *vector);
+
+void printVector(Vector *vector);
 #endif

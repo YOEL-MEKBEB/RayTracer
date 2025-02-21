@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "vector.h"
 
 int initialize_camera(Camera *camera, float viewOriginX, float viewOriginY, float viewOriginZ) {
     // camera->viewOriginX = viewOriginX;
@@ -99,6 +100,11 @@ void setViewingWindow(Camera *camera, float d) {
     camera->upperRightCorner = vectorAdd(&forward, &URside);
     camera->lowerLeftCorner = vectorAdd(&forward, &LLside);
     camera->lowerRightCorner = vectorAdd(&forward, &LRside);
+}
+
+int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity){
+    setLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity);
+    return 0;
 }
 
 void printCamera(Camera *camera) {

@@ -57,3 +57,7 @@ Vector normalize(Vector* vector){
     }
     return scalarVecMult(1/(vectorLength(vector)), vector);
 }
+
+void printVector(Vector *vector){
+    printf("vector: (%f, %f, %f)\n", vector->dx, vector->dy, vector->dz);
+}

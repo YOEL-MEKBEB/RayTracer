@@ -1,6 +1,8 @@
 
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "camera.h"
 #include "colorType.h"
@@ -96,9 +98,10 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, &camera->light);
 
             if (intersectColor.r < 0) {
+                printf("issue is here\n");
                 return -1;
             }
 
@@ -198,16 +201,30 @@ int main() {
         float bcY;
         float bcZ;
 
-        float cX;
-        float cY;
-        float cZ;
+        float Odr;
+        float Odg;
+        float Odb;
+        
+        float Osr;
+        float Osg;
+        float Osb;
+        
+        float ka;
+        float kd;
+        float ks;
+
+        int n;
+
+        float lightX, lightY, lightZ;
+        int isPointLight;
+        float lightIntensity;
 
         float X;
         float Y;
         float Z;
         float r;
         while (token != NULL) {
-            // printf("%s\n", token);
+            printf("%s\n", token);
             if (strcmp(token, "imsize") == 0) {
                 // width and height
                 //  width and height
@@ -234,14 +251,37 @@ int main() {
                 bcY = protectedStrToF(strtok(NULL, delimiter1));
                 bcZ = protectedStrToF(strtok(NULL, delimiter2));
             } else if ((strcmp(token, "mtlcolor") == 0) || (strcmp(token, "\nmtlcolor") == 0)) {
-                cX = protectedStrToF(strtok(NULL, delimiter1));
-                cY = protectedStrToF(strtok(NULL, delimiter1));
-                cZ = protectedStrToF(strtok(NULL, delimiter2));
-                printf("mtlColor: (%f, %f, %f)\n", cX, cY, cZ);
+                Odr = protectedStrToF(strtok(NULL, delimiter1));
+                Odg = protectedStrToF(strtok(NULL, delimiter1));
+                Odb = protectedStrToF(strtok(NULL, delimiter1));
+                printf("mtlColor: (%f, %f, %f)\n", Odr, Odg, Odb);
+                
+                Osr = protectedStrToF(strtok(NULL, delimiter1));
+                Osg = protectedStrToF(strtok(NULL, delimiter1));
+                Osb = protectedStrToF(strtok(NULL, delimiter1));
+                
+                printf("specularColor: (%f, %f, %f)\n", Osr, Osg, Osb);
+                
+                ka = protectedStrToF(strtok(NULL, delimiter1));
+                kd = protectedStrToF(strtok(NULL, delimiter1));
+                ks = protectedStrToF(strtok(NULL, delimiter1));
+                
+                printf("weights: (%f, %f, %f)\n", ka, kd, ks);
+                n = atoi(strtok(NULL, delimiter2));
+
                 token = strtok(NULL, delimiter1);
                 // printf("token: %s\n", token);
+                if(strcmp(token, "light")==0){
+                    lightX = protectedStrToF(strtok(NULL, delimiter1));
+                    lightY = protectedStrToF(strtok(NULL, delimiter1));
+                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                    isPointLight = atoi(strtok(NULL, delimiter1));
+                    lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
+                    token = strtok(NULL, delimiter1);
+                }
+                printf("this is current token %s\n", token);
 
-                if (strcmp(token, "sphere") == 0) {
+                if ((strcmp(token, "sphere") == 0) || (strcmp(token, "\nsphere") == 0)) {
                     X = protectedStrToF(strtok(NULL, delimiter1));
                     Y = protectedStrToF(strtok(NULL, delimiter1));
                     Z = protectedStrToF(strtok(NULL, delimiter1));
@@ -253,13 +293,26 @@ int main() {
                     if(initializeSphere(sphere, X, Y, Z, r, m) == -1){
                         return 1;
                     }
-                    if(setColor(sphere, cX, cY, cZ)){
+                    if(setIntrinsicColor(sphere, Odr, Odg, Odb) == -1){
                         return 1;
                     }
+                    if(setSpecularColor(sphere, Osr, Osg, Osb) == -1){
+                        return 1;
+                    }
+                    if(setWeight(sphere, ka, kd, ks) == -1){
+                        return 1;
+                    }
+                    if(setShinyFactor(sphere, n) == -1){
+                        return 1;
+                    }
+                    printSphere(sphere);
                     sphereArray[m] = sphere;
                     m++;
                     printf("%d\n", m);
                 }
+
+
+                
                 // token = strtok(NULL, delimiter2);
                 // printf("hopefully a new line %s", token);
             }
@@ -291,6 +344,7 @@ int main() {
         }
         defineImageCoordinates(camera);
         setViewingWindow(camera, 3);
+        setLight(camera, lightX, lightY, lightZ, isPointLight, lightIntensity);
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
         // printSphere(sphereArray[0]);
@@ -329,7 +383,7 @@ int main() {
             fclose(inputFile);
             free(camera);
             free(backgroundColor);
-            printf("writeImage failed");
+            printf("writeImage failed\n");
             return 1;
         }
         fclose(ppmFile);

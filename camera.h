@@ -1,5 +1,6 @@
 // #include "ray.h"
 #include "vector.h"
+#include "light.h"
 
 /// @brief a struct to define the camera in the scene. Contains viewing window as well
 typedef struct {
@@ -26,8 +27,11 @@ typedef struct {
     // storing w is not necessary since it's just -viewDirection;
     Vector u;    // horizontal direction of the image. It's a normal vector
     Vector v;    // vertical direction of the image. It's a normal vector
-
+    Light light;
+    
 } Camera;
+
+
 
 /// @brief initialize the cameras position
 /// @param camera a camera pointer
@@ -78,6 +82,8 @@ int setAspectRatio(Camera *camera, float width, float height);
 /// @param camera
 /// @param d
 void setViewingWindow(Camera *camera, float d);
+
+int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity);
 
 /// @brief print the contents of the camera for debugging
 /// @param camera

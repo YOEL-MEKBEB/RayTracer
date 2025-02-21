@@ -4,7 +4,10 @@
 typedef struct {
     float x, y, z;
     float radius;
-    float r, g, b;
+    float Odr, Odg, Odb;
+    float Osr, Osg, Osb;
+    float ka, kd, ks;
+    int shinyFactor;
     int m;
 } SphereType;
 
@@ -22,7 +25,11 @@ int initializeSphere(SphereType *sphere, float x, float y, float z, float radius
 /// @param r the red color value
 /// @param g the green color value
 /// @param b the blue color value
-int setColor(SphereType *sphere, float r, float g, float b);
+int setIntrinsicColor(SphereType *sphere, float r, float g, float b);
+
+int setSpecularColor(SphereType *sphere, float r, float g, float b);
+int setWeight(SphereType *sphere, float ka, float kd, float ks);
+int setShinyFactor(SphereType *sphere, int shinyFactor);
 
 /// @brief prints the attributes of the sphere to the console for debuggin
 /// @param sphere a sphere pointer
