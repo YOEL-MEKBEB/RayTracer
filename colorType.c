@@ -94,11 +94,11 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
     // initializeColorType(&color, sphereArray[minIndex]->r, sphereArray[minIndex]->g,
     //                     sphereArray[minIndex]->b);
-    color = shadeRay("Sphere", sphereArray[minIndex], ray, &pointOfSphere, light);
+    color = shadeRay("Sphere", sphereArray[minIndex], ray, &pointOfSphere, light, sphereArray, sizeOfArray);
     return color;
 }
 
-ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light){
+ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light, SphereType** sphereArray, int sizeOfArray){
     ColorType color;
     Vector intrinsicColor;
     Vector specularColor;
@@ -136,6 +136,56 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     }else {
         L = scalarVecMult(-1, &light->lightLocation);
         L = normalize(&L);
+    }
+
+    RayType lightRay;
+    initializeRayType(&lightRay, surfacePoint->dx,surfacePoint->dy,  surfacePoint->dz);
+    setDirection(&lightRay, L.dx, L.dy, L.dz);
+    
+    float A = 0.0;
+    float B = 0.0;
+    float C = 0.0;
+    SphereType* obstructingSphere;
+    int shadowFlag = 1;
+    float t;
+
+    for (int i = 0; i < sizeOfArray; i++){
+
+        obstructingSphere = sphereArray[i];
+        A = pow(lightRay.dx, 2) + pow(lightRay.dy, 2) + pow(lightRay.dz, 2);
+        if (A == 0) {
+            printf("light has a 0 vector for it's direction");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
+        }
+        B = 2 * (lightRay.x - obstructingSphere->x) * lightRay.dx + 2 * (lightRay.y - obstructingSphere->y) * lightRay.dy +
+            2 * (lightRay.z - obstructingSphere->z) * lightRay.dz;
+        C = pow((lightRay.x - obstructingSphere->x), 2) + pow((lightRay.y - obstructingSphere->y), 2) +
+            pow((lightRay.z - obstructingSphere->z), 2) - pow((obstructingSphere->radius), 2);
+
+        if ((pow(B, 2) - 4 * A * C) < 0) {
+                continue;
+            // return *backgroundColor;
+        } else if ((pow(B, 2) - 4 * A * C) == 0) {
+            t = (-1 * B) / (2 * A);
+            
+                            
+        } else {
+            float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+            float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+            if(t1 < t2){
+                t = t1;
+            }else{
+                t = t2;
+            }
+        }
+
+        if(t <= 0){
+            continue;
+        }else{
+            shadowFlag = 0;
+            break;
+        }
     }
 
     // printf("L: ");
@@ -178,39 +228,13 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
         // printf("%f\n", acos(nDotL));
         diffuseTerm = scalarVecMult(sphere->kd * nDotL, &intrinsicColor);
     }
-    // printf("Shiny Factor: %d\n", sphere->shinyFactor);
-
-    // printf("error is here\n");
-    //
     Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
-    // if(nDotH > 0){
-        
-    //     printf("nDotH: %f\n", nDotH);
-    //     printVector(&specularTerm);
-    //     printf("power: %f\n", pow(fmax(0.0, sphere->ks * nDotH),sphere->shinyFactor));
-    // }
-
-    // printf("ks = %f",sphere->ks);
-
-        // printVector(&ambientTerm);
-        // printVector(&diffuseTerm);
-        // printVector(&specularTerm);
-    
     Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
 
-    sum1 = scalarVecMult(light->lightIntensity, &sum1);
+    sum1 = scalarVecMult(light->lightIntensity * shadowFlag, &sum1);
     Vector sum2 = vectorAdd(&sum1, &ambientTerm);
     
     initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);
-    // if(color.r < 0){
-    //     color.r = 0;
-    // }
-    // if(color.g < 0){
-    //     color.g = 0;
-    // }
-    // if(color.b < 0){
-    //     color.b = 0;
-    // }
 
     if(color.r > 1){
         color.r = 1;

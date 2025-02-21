@@ -25,7 +25,7 @@ properties of the intersected object; in the future,
 we will need to also provide the coordinates of the
 point where the shading will be computed */
 
-ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light);
+ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light, SphereType** sphereArray, int sizeOfArray);
 
 /// @brief prints the attributes of the color for debugging
 /// @param color
