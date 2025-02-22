@@ -49,8 +49,10 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
             t[i] = (-1 * B) / (2 * A);
 
             // will be used for later iterations.
-            initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
-                              ray->z + t[i] * ray->dz);
+            if(initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
+                              ray->z + t[i] * ray->dz) == -1){
+                printf("surface point creation in trace ray is not working");
+            }
             ///////////////
 
         } else {
@@ -72,9 +74,11 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                 }
             }
 
-            initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
-                              ray->z + t[i] * ray->dz);
 
+            if(initialize_vector(&pointOfSphere, ray->x + t[i] * ray->dx, ray->y + t[i] * ray->dy,
+                              ray->z + t[i] * ray->dz) == -1){
+                printf("surface point creation in trace ray is not working");
+            }
         }
     }
     // printf("tmin: %f\n", t[minIndex]);
@@ -109,6 +113,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     Vector V;
     Vector L;
     Vector H;
+    float attenuationFactor;
 
 
     // printRay(ray);
@@ -124,17 +129,26 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     Vector N = scalarVecMult(1.0/sphere->radius, &rN);
     // printf("N: ");
     // printVector(&N);
-    initialize_vector(&rayOrigin, ray->x, ray->y, ray->z);
+    if(initialize_vector(&rayOrigin, ray->x, ray->y, ray->z) == -1){
+        printf("rayOrigin vector creation ruined in shadeRay");
+    }
     Vector negSphereSurface = scalarVecMult(-1.0, surfacePoint);
 
     
     if(light->isPoint){
         // printf("LightLocation: (%f, %f, %f)", light->lightLocation.dx, light->lightLocation.dy, light->lightLocation.dz);
         L = vectorAdd(&light->lightLocation, &negSphereSurface);
+        float distance = vectorLength(&L);
+        if(light->isAttenuated){
+            attenuationFactor  = 1/(light->c1 + light->c2 * distance + light->c3 * pow(distance, 2));
+        }else{
+            attenuationFactor = 1;
+        }
         L = normalize(&L);
         
     }else {
         L = scalarVecMult(-1, &light->lightLocation);
+        attenuationFactor = 1.0;
         L = normalize(&L);
     }
 
@@ -231,7 +245,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
     Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
 
-    sum1 = scalarVecMult(light->lightIntensity * shadowFlag, &sum1);
+    sum1 = scalarVecMult(light->lightIntensity * shadowFlag * attenuationFactor, &sum1);
     Vector sum2 = vectorAdd(&sum1, &ambientTerm);
     
     initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);

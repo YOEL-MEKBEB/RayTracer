@@ -85,6 +85,8 @@ void setViewingWindow(Camera *camera, float d);
 
 int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity);
 
+int setAttLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, float  c1, float c2, float c3);
+
 /// @brief print the contents of the camera for debugging
 /// @param camera
 void printCamera(Camera *camera);

@@ -6,6 +6,7 @@
 
 #include "camera.h"
 #include "colorType.h"
+#include "light.h"
 #include "ray.h"
 #include "shapes.h"
 #include "stdlib.h"
@@ -218,6 +219,7 @@ int main() {
         float lightX, lightY, lightZ;
         int isPointLight;
         float lightIntensity;
+        float c1, c2, c3;
 
         float X;
         float Y;
@@ -277,6 +279,19 @@ int main() {
                     lightZ = protectedStrToF(strtok(NULL, delimiter1));
                     isPointLight = atoi(strtok(NULL, delimiter1));
                     lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
+                    c1 = 0.0;
+                    c2 = 0.0;
+                    c3 = 0.0;
+                    token = strtok(NULL, delimiter1);
+                }else if(strcmp(token, "attlight")==0){
+                    lightX = protectedStrToF(strtok(NULL, delimiter1));
+                    lightY = protectedStrToF(strtok(NULL, delimiter1));
+                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                    isPointLight = atoi(strtok(NULL, delimiter1));
+                    lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
+                    c1 = protectedStrToF(strtok(NULL, delimiter1));
+                    c2 = protectedStrToF(strtok(NULL, delimiter1));
+                    c3 = protectedStrToF(strtok(NULL, delimiter2));
                     token = strtok(NULL, delimiter1);
                 }
                 printf("this is current token %s\n", token);
@@ -344,7 +359,15 @@ int main() {
         }
         defineImageCoordinates(camera);
         setViewingWindow(camera, 3);
-        setLight(camera, lightX, lightY, lightZ, isPointLight, lightIntensity);
+
+        if(c1 > 0 || c2 > 0 || c3 > 0){
+            printf("setting Attenuated light\n");
+            setAttLight(camera, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
+        }else{
+            printf("setting non attenuated light\n");
+            setLight(camera, lightX, lightY, lightZ, isPointLight, lightIntensity);
+            printLight(&camera->light);
+        }
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
         // printSphere(sphereArray[0]);

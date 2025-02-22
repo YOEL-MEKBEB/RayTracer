@@ -4,6 +4,9 @@ int initialize_vector(Vector* vector, float dx, float dy, float dz){
 
     if(isnan(dx) || isnan(dy) || isnan(dz)){
         printf("dx, dy, or dz is not a number\n");
+        printf("dx: %f\n", dx);
+        printf("dy: %f\n", dy);
+        printf("dz: %f\n", dz);
         return -1;
     }
 
@@ -17,7 +20,9 @@ int initialize_vector(Vector* vector, float dx, float dy, float dz){
 
 Vector vectorAdd(Vector* vector1, Vector* vector2){
     Vector sum;
-    initialize_vector(&sum, vector1->dx + vector2->dx, vector1->dy + vector2->dy, vector1->dz + vector2->dz);
+    if(initialize_vector(&sum, vector1->dx + vector2->dx, vector1->dy + vector2->dy, vector1->dz + vector2->dz) == -1){
+        printf("the problem is here\n");
+    }
     return sum;
 }
 
