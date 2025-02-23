@@ -18,7 +18,7 @@ void initializeColorType(ColorType *color, float r, float g, float b);
 /// color with values of -1 to indicate error
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light* light);
+                   ColorType *backgroundColor, Light** light, int numberOfLights);
 
 
 /// @brief colors the ray of with the closest object of intersection
@@ -30,7 +30,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 /// @param sphereArray an array of sphere to check for occurence of shadows
 /// @param sizeOfArray size of sphereArray
 /// @return 
-ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light, SphereType** sphereArray, int sizeOfArray);
+ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light** light, int numberOfLights, SphereType** sphereArray, int sizeOfArray);
 
 /// @brief prints the attributes of the color for debugging
 /// @param color

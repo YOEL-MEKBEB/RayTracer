@@ -103,21 +103,32 @@ void setViewingWindow(Camera *camera, float d) {
     camera->lowerRightCorner = vectorAdd(&forward, &LRside);
 }
 
-int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity){
-    if(setLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity) == -1){
-        printf("setting light parameters failed\n");
-        return -1;
-    }
+// int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, int index){
+//     Light *light = malloc(sizeof(Light));
+//     if(setLightParameters(light, lightX, lightY, lightZ, isPoint, lightIntensity) == -1){
+//         printf("setting light parameters failed\n");
+//         return -1;
+//     }
+//     camera->light[index] = light;
+//     return 0;
+// }
+int setLight(Camera *camera, Light **lightArray, int sizeOfArray){
+    camera->light = lightArray;
+    camera->numberOfLights = sizeOfArray;
     return 0;
 }
 
-int setAttLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, float c1, float c2, float c3){
-    if(setAttLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity, c1, c2, c3) == -1){
-        printf("setting attenuated light failed\n");
-        return -1;
-    }
-    return 0;
-}
+// int setAttLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, float c1, float c2, float c3, int index){
+//     Light *light = malloc(sizeof(Light));
+//     if(setAttLightParameters(light, lightX, lightY, lightZ, isPoint, lightIntensity, c1, c2, c3) == -1){
+//         printf("setting attenuated light failed\n");
+//         return -1;
+//     }
+
+//     camera->light[index] = light;
+    
+//     return 0;
+// }
 
 void printCamera(Camera *camera) {
     printf("View Origin: (%f, %f, %f)\n", camera->viewOrigin.dx, camera->viewOrigin.dy,

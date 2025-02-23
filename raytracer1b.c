@@ -99,7 +99,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, &camera->light);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -156,6 +156,8 @@ int main() {
     char *delimiter3 = "\n\n";
     int m = 0;    // shape tag;
     SphereType *sphereArray[10];
+    Light* lightArray[10];
+    int lightIndex = 0;
 
     while (1) {
         printf("input text file: ");
@@ -271,32 +273,43 @@ int main() {
                 printf("weights: (%f, %f, %f)\n", ka, kd, ks);
                 n = atoi(strtok(NULL, delimiter2));
 
-                token = strtok(NULL, delimiter1);
-                // printf("token: %s\n", token);
-                if(strcmp(token, "light")==0){
-                    lightX = protectedStrToF(strtok(NULL, delimiter1));
-                    lightY = protectedStrToF(strtok(NULL, delimiter1));
-                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                    isPointLight = atoi(strtok(NULL, delimiter1));
-                    lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
-                    c1 = 0.0;
-                    c2 = 0.0;
-                    c3 = 0.0;
-                    token = strtok(NULL, delimiter1);
-                }else if(strcmp(token, "attlight")==0){
-                    lightX = protectedStrToF(strtok(NULL, delimiter1));
-                    lightY = protectedStrToF(strtok(NULL, delimiter1));
-                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                    isPointLight = atoi(strtok(NULL, delimiter1));
-                    lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
-                    c1 = protectedStrToF(strtok(NULL, delimiter1));
-                    c2 = protectedStrToF(strtok(NULL, delimiter1));
-                    c3 = protectedStrToF(strtok(NULL, delimiter2));
-                    token = strtok(NULL, delimiter1);
-                }
-                printf("this is current token %s\n", token);
-
-                if ((strcmp(token, "sphere") == 0) || (strcmp(token, "\nsphere") == 0)) {
+                // token = strtok(NULL, delimiter1);
+                // // printf("token: %s\n", token);
+                // if(strcmp(token, "light")==0){
+                //     lightX = protectedStrToF(strtok(NULL, delimiter1));
+                //     lightY = protectedStrToF(strtok(NULL, delimiter1));
+                //     lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                //     isPointLight = atoi(strtok(NULL, delimiter1));
+                //     lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
+                //     c1 = 0.0;
+                //     c2 = 0.0;
+                //     c3 = 0.0;
+                //     printf("setting non attenuated light\n");
+                //     Light *light = malloc(sizeof(Light));
+                //     setLightParameters(light, lightX, lightY, lightZ, isPointLight, lightIntensity);
+                //     lightArray[lightIndex] = light;
+                //     lightIndex++;
+                //     token = strtok(NULL, delimiter1);
+                // }else if(strcmp(token, "attlight")==0){
+                //     lightX = protectedStrToF(strtok(NULL, delimiter1));
+                //     lightY = protectedStrToF(strtok(NULL, delimiter1));
+                //     lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                //     isPointLight = atoi(strtok(NULL, delimiter1));
+                //     lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
+                //     c1 = protectedStrToF(strtok(NULL, delimiter1));
+                //     c2 = protectedStrToF(strtok(NULL, delimiter1));
+                //     c3 = protectedStrToF(strtok(NULL, delimiter2));
+                //     printf("setting Attenuated light\n");
+                //     Light *light = malloc(sizeof(Light));
+                //     setAttLightParameters(light, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
+                //     lightArray[lightIndex] = light;
+                //     printLight(light);
+                //     printLight(lightArray[lightIndex]);
+                //     lightIndex++;
+                //     token = strtok(NULL, delimiter1);
+                // }
+                // printf("this is current token %s\n", token);
+            }else if ((strcmp(token, "sphere") == 0) || (strcmp(token, "\nsphere") == 0)) {
                     X = protectedStrToF(strtok(NULL, delimiter1));
                     Y = protectedStrToF(strtok(NULL, delimiter1));
                     Z = protectedStrToF(strtok(NULL, delimiter1));
@@ -324,17 +337,43 @@ int main() {
                     sphereArray[m] = sphere;
                     m++;
                     printf("%d\n", m);
-                }
-
-
-                
-                // token = strtok(NULL, delimiter2);
-                // printf("hopefully a new line %s", token);
-            }
+            }  else if(strcmp(token, "light")==0){
+                    lightX = protectedStrToF(strtok(NULL, delimiter1));
+                    lightY = protectedStrToF(strtok(NULL, delimiter1));
+                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                    isPointLight = atoi(strtok(NULL, delimiter1));
+                    lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
+                    c1 = 0.0;
+                    c2 = 0.0;
+                    c3 = 0.0;
+                    printf("setting non attenuated light\n");
+                    Light *light = malloc(sizeof(Light));
+                    setLightParameters(light, lightX, lightY, lightZ, isPointLight, lightIntensity);
+                    lightArray[lightIndex] = light;
+                    lightIndex++;
+            }else if(strcmp(token, "attlight")==0){
+                    lightX = protectedStrToF(strtok(NULL, delimiter1));
+                    lightY = protectedStrToF(strtok(NULL, delimiter1));
+                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                    isPointLight = atoi(strtok(NULL, delimiter1));
+                    lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
+                    c1 = protectedStrToF(strtok(NULL, delimiter1));
+                    c2 = protectedStrToF(strtok(NULL, delimiter1));
+                    c3 = protectedStrToF(strtok(NULL, delimiter2));
+                    printf("setting Attenuated light\n");
+                    Light *light = malloc(sizeof(Light));
+                    setAttLightParameters(light, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
+                    lightArray[lightIndex] = light;
+                    printLight(light);
+                    printLight(lightArray[lightIndex]);
+                    lightIndex++;
+                                   }
             token = strtok(NULL, delimiter1);
             // printf("this is current token %s\n", token);
         }
         int length = m;
+        int lengthOfLight = lightIndex;
+        lightIndex = 0;
         m = 0;
 
         if(initialize_camera(camera, eyeX, eyeY, eyeZ) == -1){
@@ -359,15 +398,14 @@ int main() {
         }
         defineImageCoordinates(camera);
         setViewingWindow(camera, 3);
+        setLight(camera, lightArray, lengthOfLight);
 
-        if(c1 > 0 || c2 > 0 || c3 > 0){
-            printf("setting Attenuated light\n");
-            setAttLight(camera, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
-        }else{
-            printf("setting non attenuated light\n");
-            setLight(camera, lightX, lightY, lightZ, isPointLight, lightIntensity);
-            printLight(&camera->light);
-        }
+        // if(c1 > 0 || c2 > 0 || c3 > 0){
+        // }else{
+        //     printLight(&camera->light);
+        // }
+        //
+        // 
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
         // printSphere(sphereArray[0]);
@@ -415,6 +453,9 @@ int main() {
         fclose(inputFile);
         for(int i = 0; i < length; i++){
             free(sphereArray[i]);
+        }
+        for(int i = 0; i < lengthOfLight; i++){
+            free(lightArray[i]);
         }
     }
 

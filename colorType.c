@@ -1,5 +1,6 @@
 #include "colorType.h"
 
+#include "light.h"
 #include "ray.h"
 #include "shapes.h"
 #include "stdlib.h"
@@ -13,7 +14,7 @@ void initializeColorType(ColorType *color, float r, float g, float b) {
 }
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light* light) {
+                   ColorType *backgroundColor, Light** light, int numberOfLights) {
     
     // printf("%d\n", sizeOfArray);
     SphereType *sphere;
@@ -98,11 +99,11 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
     // initializeColorType(&color, sphereArray[minIndex]->r, sphereArray[minIndex]->g,
     //                     sphereArray[minIndex]->b);
-    color = shadeRay("Sphere", sphereArray[minIndex], ray, &pointOfSphere, light, sphereArray, sizeOfArray);
+    color = shadeRay("Sphere", sphereArray[minIndex], ray, &pointOfSphere, light, numberOfLights, sphereArray, sizeOfArray);
     return color;
 }
 
-ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light, SphereType** sphereArray, int sizeOfArray){
+ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray){
     ColorType color;
     Vector intrinsicColor;
     Vector specularColor;
@@ -111,13 +112,11 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     Vector rayOrigin;
     Vector diffuseTerm;
     Vector V;
-    Vector L;
-    Vector H;
-    float attenuationFactor;
+    Vector L[numberOfLights];
+    Vector H[numberOfLights];
+    float attenuationFactor[numberOfLights];
 
 
-
-    
     if(initialize_vector(&negSphereCenter, -1 * sphere->x, -1 * sphere->y, -1 * sphere->z) == -1){
         printf("it died");
     }
@@ -132,87 +131,108 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     }
     Vector negSphereSurface = scalarVecMult(-1.0, surfacePoint);
 
-    
-    if(light->isPoint){
-        // printf("LightLocation: (%f, %f, %f)", light->lightLocation.dx, light->lightLocation.dy, light->lightLocation.dz);
-        L = vectorAdd(&light->lightLocation, &negSphereSurface);
-        float distance = vectorLength(&L);
-        if(light->isAttenuated){
-            attenuationFactor  = 1/(light->c1 + light->c2 * distance + light->c3 * pow(distance, 2));
-        }else{
-            attenuationFactor = 1;
-        }
-        L = normalize(&L);
-        
-    }else {
-        L = scalarVecMult(-1, &light->lightLocation);
-        attenuationFactor = 1.0;
-        L = normalize(&L);
-    }
 
-    RayType lightRay;
-    initializeRayType(&lightRay, surfacePoint->dx,surfacePoint->dy,  surfacePoint->dz);
-    setDirection(&lightRay, L.dx, L.dy, L.dz);
-    
-    float A = 0.0;
-    float B = 0.0;
-    float C = 0.0;
-    SphereType* obstructingSphere;
-    int shadowFlag = 1;
-    float t;
-
-    for (int i = 0; i < sizeOfArray; i++){
-
-        obstructingSphere = sphereArray[i];
-        A = pow(lightRay.dx, 2) + pow(lightRay.dy, 2) + pow(lightRay.dz, 2);
-        if (A == 0) {
-            printf("light has a 0 vector for it's direction");
-            initializeColorType(&color, -1, -1, -1);
-            return color;
-        }
-        B = 2 * (lightRay.x - obstructingSphere->x) * lightRay.dx + 2 * (lightRay.y - obstructingSphere->y) * lightRay.dy +
-            2 * (lightRay.z - obstructingSphere->z) * lightRay.dz;
-        C = pow((lightRay.x - obstructingSphere->x), 2) + pow((lightRay.y - obstructingSphere->y), 2) +
-            pow((lightRay.z - obstructingSphere->z), 2) - pow((obstructingSphere->radius), 2);
-
-        if ((pow(B, 2) - 4 * A * C) < 0) {
-                continue;
-            // return *backgroundColor;
-        } else if ((pow(B, 2) - 4 * A * C) == 0) {
-            t = (-1 * B) / (2 * A);
-            
-                            
-        } else {
-            float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
-            float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
-            if(t1 < t2){
-                t = t1;
+    for(int i = 0; i < numberOfLights; i++){
+        if(lightArray[i]->isPoint){
+            L[i] = vectorAdd(&lightArray[i]->lightLocation, &negSphereSurface);
+            float distance = vectorLength(&L[i]);
+            if(lightArray[i]->isAttenuated){
+                attenuationFactor[i] = 1/(lightArray[i]->c1 + lightArray[i]->c2 * distance + lightArray[i]->c3 * pow(distance, 2));
             }else{
-                t = t2;
+                attenuationFactor[i] = 1.0;
+            }
+
+            L[i] = normalize(&L[i]);
+        }else{
+            L[i] = scalarVecMult(-1, &lightArray[i]->lightLocation);
+            attenuationFactor[i] = 1.0;
+            L[i] = normalize(&L[i]);
+        }
+        
+    }  
+    //  if(light->isPoint){
+    //     // printf("LightLocation: (%f, %f, %f)", light->lightLocation.dx, light->lightLocation.dy, light->lightLocation.dz);
+    //     L = vectorAdd(&light->lightLocation, &negSphereSurface);
+    //     float distance = vectorLength(&L);
+    //     if(light->isAttenuated){
+    //         attenuationFactor  = 1/(light->c1 + light->c2 * distance + light->c3 * pow(distance, 2));
+    //     }else{
+    //         attenuationFactor = 1;
+    //     }
+    //     L = normalize(&L);
+        
+    // }else {
+    //     L = scalarVecMult(-1, &light->lightLocation);
+    //     attenuationFactor = 1.0;
+    //     L = normalize(&L);
+    // }
+
+    int shadowFlag[numberOfLights];
+    for(int j=0; j<numberOfLights; j++){
+    
+        RayType lightRay;
+        initializeRayType(&lightRay, surfacePoint->dx,surfacePoint->dy,  surfacePoint->dz);
+        setDirection(&lightRay, L[j].dx, L[j].dy, L[j].dz);
+        
+        float A = 0.0; 
+        float B = 0.0;
+        float C = 0.0;
+        SphereType* obstructingSphere;
+        float t;
+        shadowFlag[j] = 1;
+        for (int i = 0; i < sizeOfArray; i++){
+
+            obstructingSphere = sphereArray[i];
+            A = pow(lightRay.dx, 2) + pow(lightRay.dy, 2) + pow(lightRay.dz, 2);
+            if (A == 0) {
+                printf("light has a 0 vector for it's direction");
+                initializeColorType(&color, -1, -1, -1);
+                return color;
+            }
+            B = 2 * (lightRay.x - obstructingSphere->x) * lightRay.dx + 2 * (lightRay.y - obstructingSphere->y) * lightRay.dy +
+                2 * (lightRay.z - obstructingSphere->z) * lightRay.dz;
+            C = pow((lightRay.x - obstructingSphere->x), 2) + pow((lightRay.y - obstructingSphere->y), 2) +
+                pow((lightRay.z - obstructingSphere->z), 2) - pow((obstructingSphere->radius), 2);
+
+            if ((pow(B, 2) - 4 * A * C) < 0) {
+                    continue;
+                // return *backgroundColor;
+            } else if ((pow(B, 2) - 4 * A * C) == 0) {
+                t = (-1 * B) / (2 * A);
+                
+                                
+            } else {
+                float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+                float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+                if(t1 < t2){
+                    t = t1;
+                }else{
+                    t = t2;
+                }
+            }
+
+            if(t <= 0){
+                continue;
+            }else{
+                shadowFlag[j] = 0;
+                break;
             }
         }
 
-        if(t <= 0){
-            continue;
-        }else{
-            shadowFlag = 0;
-            break;
-        }
     }
 
     // printf("L: ");
     // printVector(&L);
     
-
+    Vector sumOfLights;
+    initialize_vector(&sumOfLights, 0.0, 0.0, 0.0);
     V = vectorAdd(&rayOrigin, &negSphereSurface);
     V = normalize(&V);
 
     // printf("V: ");
     // printVector(&V);
-    H = vectorAdd(&L, &V);
-    H = normalize(&H);
+    //
 
-    
     if(initialize_vector(&intrinsicColor, sphere->Odr, sphere->Odg, sphere->Odb) == -1){
         printf("intrinsic color couldn't be created in shadeRay\n");
             initializeColorType(&color, -1, -1, -1);
@@ -225,23 +245,33 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     }
 
     Vector ambientTerm = scalarVecMult(sphere->ka, &intrinsicColor);
+    for(int i = 0; i<numberOfLights; i++){
+        
+        H[i] = vectorAdd(&L[i], &V);
+        H[i] = normalize(&H[i]);
 
-    float nDotL = dotProduct(&N, &L);
-    float nDotH = dotProduct(&N, &H);
+        float nDotL = dotProduct(&N, &L[i]);
+        float nDotH = dotProduct(&N, &H[i]);
+        if(acos(nDotL) > M_PI/2){
+            initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
+        }else{
+            diffuseTerm = scalarVecMult(sphere->kd * nDotL, &intrinsicColor);
+        }
+        
+        Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
+        Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
+        sum1 = scalarVecMult(lightArray[i]->lightIntensity * shadowFlag[i] * attenuationFactor[i], &sum1);
+        sumOfLights = vectorAdd(&sumOfLights, &sum1);
+    }
+
+    
+
 
     // printf("nDOtL: %f\n", nDotL);
 
-    if(acos(nDotL) > M_PI/2){
-        initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
-    }else{
-        diffuseTerm = scalarVecMult(sphere->kd * nDotL, &intrinsicColor);
-    }
-    Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
-    Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
 
-    sum1 = scalarVecMult(light->lightIntensity * shadowFlag * attenuationFactor, &sum1);
-    Vector sum2 = vectorAdd(&sum1, &ambientTerm);
     
+    Vector sum2 = vectorAdd(&sumOfLights, &ambientTerm);
     initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);
 
     if(color.r > 1){
