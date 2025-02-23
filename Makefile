@@ -1,11 +1,11 @@
 
 CC = gcc
 
-output: ray.o raytracer1a.o camera.o vector.o colorType.o shapes.o light.o
-	$(CC) shapes.o light.o colorType.o vector.o camera.o ray.o raytracer1a.o -o raytracer1a -lm
+output: ray.o raytracer1b.o camera.o vector.o colorType.o shapes.o light.o
+	$(CC) shapes.o light.o colorType.o vector.o camera.o ray.o raytracer1b.o -o raytracer1b -lm
 
-raytracer1a.o: raytracer1a.c
-	$(CC) -c raytracer1a.c
+raytracer1b.o: raytracer1b.c
+	$(CC) -c raytracer1b.c
 
 ray.o: ray.c ray.h
 	$(CC) -c ray.c
@@ -24,7 +24,7 @@ shapes.o: shapes.h shapes.c
 light.o: light.h light.c
 	$(CC) -c light.c
 clean:
-	rm *.o raytracer1a
+	rm *.o raytracer1b
 run:
 	make
-	./raytracer1a
+	./raytracer1b

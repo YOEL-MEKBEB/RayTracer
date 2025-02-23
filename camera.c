@@ -104,12 +104,18 @@ void setViewingWindow(Camera *camera, float d) {
 }
 
 int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity){
-    setLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity);
+    if(setLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity) == -1){
+        printf("setting light parameters failed\n");
+        return -1;
+    }
     return 0;
 }
 
 int setAttLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, float c1, float c2, float c3){
-    setAttLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity, c1, c2, c3);
+    if(setAttLightParameters(&camera->light, lightX, lightY, lightZ, isPoint, lightIntensity, c1, c2, c3) == -1){
+        printf("setting attenuated light failed\n");
+        return -1;
+    }
     return 0;
 }
 

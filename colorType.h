@@ -7,24 +7,29 @@ typedef struct {
 } ColorType;
 
 void initializeColorType(ColorType *color, float r, float g, float b);
-/// @brief calculates the whether the ray intersects an object
+
+/// @brief calculates the whether the ray intersects an object and calls shadeRay to color the pixel
 /// @param ray a RayType containing the origin and the direction of the ray
+/// @param sphereArray an array of sphere pointers to iterate through and check intersection of rays
+/// @param sizeOfArray size of the sphereArray
+/// @param backgroundColor 
+/// @param light light object for coloring
 /// @return returns the color obtained from the intersection or the background color. returns a
 /// color with values of -1 to indicate error
+
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                    ColorType *backgroundColor, Light* light);
 
 
-/// @brief obtains the color of the shape if an intersection occurs
-/// @param parameter for now it's the type of shape the intersection is.
-/// @return returns the color obtained
-//
-/* for assignment 1a, we only need to pass in an
-identifier that allows access to the material
-properties of the intersected object; in the future,
-we will need to also provide the coordinates of the
-point where the shading will be computed */
-
+/// @brief colors the ray of with the closest object of intersection
+/// @param objectType identifier of the object //will be used later when I add more shapes
+/// @param sphere the sphere that is to be colored
+/// @param ray the ray that intersected the sphere
+/// @param surfacePoint the location of the intersection
+/// @param light light object for coloring
+/// @param sphereArray an array of sphere to check for occurence of shadows
+/// @param sizeOfArray size of sphereArray
+/// @return 
 ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *surfacePoint,  Light* light, SphereType** sphereArray, int sizeOfArray);
 
 /// @brief prints the attributes of the color for debugging

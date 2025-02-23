@@ -5,6 +5,7 @@
     Vector lightLocation;
     if(initialize_vector(&lightLocation, lightX, lightY, lightZ) == -1){
       printf("failed in setLightParameters");
+      return -1;
     }
     light->lightLocation = lightLocation;
     light->isPoint = isPoint;
@@ -21,6 +22,7 @@ int setAttLightParameters(Light *light, float lightX, float lightY, float lightZ
     Vector lightLocation;
     if(initialize_vector(&lightLocation, lightX, lightY, lightZ) == -1){
       printf("failed in setAttLightParameters");
+      return -1;
     }
     light->lightLocation = lightLocation;
     light->isPoint = isPoint;

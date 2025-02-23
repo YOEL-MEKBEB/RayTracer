@@ -27,7 +27,7 @@ typedef struct {
     // storing w is not necessary since it's just -viewDirection;
     Vector u;    // horizontal direction of the image. It's a normal vector
     Vector v;    // vertical direction of the image. It's a normal vector
-    Light light;
+    Light light; // the light of the scene
     
 } Camera;
 
@@ -83,8 +83,27 @@ int setAspectRatio(Camera *camera, float width, float height);
 /// @param d
 void setViewingWindow(Camera *camera, float d);
 
+/// @brief sets the light parameter of the camera
+/// @param camera 
+/// @param lightX 
+/// @param lightY 
+/// @param lightZ 
+/// @param isPoint 
+/// @param lightIntensity 
+/// @return returns 0 on success, -1 on failure
 int setLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity);
 
+/// @brief sets the light parameter of the camera with an attenuated light
+/// @param camera 
+/// @param lightX 
+/// @param lightY 
+/// @param lightZ 
+/// @param isPoint 
+/// @param lightIntensity 
+/// @param c1 
+/// @param c2 
+/// @param c3 
+/// @return 0 on success, -1 on failure
 int setAttLight(Camera *camera, float lightX, float lightY, float lightZ, int isPoint, float lightIntensity, float  c1, float c2, float c3);
 
 /// @brief print the contents of the camera for debugging

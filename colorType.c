@@ -116,21 +116,19 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     float attenuationFactor;
 
 
-    // printRay(ray);
-    // printVector(surfacePoint);
-    // printVector(&light->lightLocation);
 
     
     if(initialize_vector(&negSphereCenter, -1 * sphere->x, -1 * sphere->y, -1 * sphere->z) == -1){
         printf("it died");
     }
-    // initialize_vector(&sphereSurface, x, y, z);
+    
     Vector rN = vectorAdd(surfacePoint, &negSphereCenter);
     Vector N = scalarVecMult(1.0/sphere->radius, &rN);
-    // printf("N: ");
-    // printVector(&N);
+
     if(initialize_vector(&rayOrigin, ray->x, ray->y, ray->z) == -1){
         printf("rayOrigin vector creation ruined in shadeRay");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
     }
     Vector negSphereSurface = scalarVecMult(-1.0, surfacePoint);
 
@@ -216,17 +214,17 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
 
     
     if(initialize_vector(&intrinsicColor, sphere->Odr, sphere->Odg, sphere->Odb) == -1){
-        printf("it actually died here\n");
+        printf("intrinsic color couldn't be created in shadeRay\n");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
     }
     if(initialize_vector(&specularColor, sphere->Osr, sphere->Osg, sphere->Osb) == -1){
-        printf("probably not here then\n");
+        printf("specular Color couldn't be created in shadeRay\n");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
     }
 
     Vector ambientTerm = scalarVecMult(sphere->ka, &intrinsicColor);
-    // printf("N: ");
-    // printVector(&N);
-    // printf("H: ");
-    // printVector(&H);
 
     float nDotL = dotProduct(&N, &L);
     float nDotH = dotProduct(&N, &H);
@@ -235,11 +233,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
 
     if(acos(nDotL) > M_PI/2){
         initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
-        // printf("%f\n", acos(nDotL));
-        // printf("actually reached here\n");
     }else{
-        
-        // printf("%f\n", acos(nDotL));
         diffuseTerm = scalarVecMult(sphere->kd * nDotL, &intrinsicColor);
     }
     Vector specularTerm = scalarVecMult(sphere->ks * pow(fmax(0.0, nDotH),sphere->shinyFactor), &specularColor);
@@ -258,10 +252,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, RayType *ray,  Vector *
     }
     if(color.b > 1){
         color.b = 1;
-    }
-    // printColor(&color);
-    // printf("error is definitely here\n");
-    
+    }    
     
     return color;
 
