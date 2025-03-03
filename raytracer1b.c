@@ -139,8 +139,10 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
 /// @return returns the converted value on success or NAN on error
 float protectedStrToF(char *token) {
     float value = strtof(token, NULL);
-    if (strtof(token, NULL) == 0.0 && strcmp("0", token) != 0) {
-        return NAN;
+    if (strtof(token, NULL) == 0.0){
+        if(strcmp("0", token) != 0 && strcmp("0.0", token) != 0) {
+            return NAN;
+        }
     }
     return value;
 }
@@ -174,17 +176,18 @@ int main() {
             return 1;
         }
 
-        char buf2[1024];
-        if (fread(buf2, 1, sizeof(buf2), inputFile) < 0) {
-            printf("failed to read");
-            return 1;
-        }
+          char buf2[100];
+        // if (fread(buf2, 1, sizeof(buf2), inputFile) < 0) {
+        //     printf("failed to read");
+        //     return 1;
+        // }
 
         // start big if statement here
 
-        char *token = strtok(buf2, delimiter1);
-        char *width;
-        char *height;
+        // char *token = strtok(buf2, delimiter1);
+        char *token;
+        char width[5];
+        char height[5];
 
         float eyeX;
         float eyeY;
@@ -227,34 +230,39 @@ int main() {
         float Y;
         float Z;
         float r;
-        while (token != NULL) {
-            printf("%s\n", token);
-            if (strcmp(token, "imsize") == 0) {
-                // width and height
-                //  width and height
-                width = strtok(NULL, delimiter1);
-                height = strtok(NULL, delimiter2);
-            } else if (strcmp(token, "eye") == 0) {
-                eyeX = protectedStrToF(strtok(NULL, delimiter1));
-                eyeY = protectedStrToF(strtok(NULL, delimiter1));
-                eyeZ = protectedStrToF(strtok(NULL, delimiter2));
-                printf("eyeZ: %f\n", eyeZ);
+     while(fgets(buf2, 100, inputFile) != NULL){
+          token = strtok(buf2, delimiter1);
 
-            } else if (strcmp(token, "viewdir") == 0) {
+          // printf("%s\n", token);
+
+          if(strcmp(token, "imsize") == 0){
+
+              printf("entered\n");
+
+              strcpy(width, strtok(NULL, delimiter1));
+              strcpy(height, strtok(NULL, delimiter2));
+          
+          } else if (strcmp(token, "eye") == 0) {
+            eyeX = protectedStrToF(strtok(NULL, delimiter1));
+            eyeY = protectedStrToF(strtok(NULL, delimiter1));
+            eyeZ = protectedStrToF(strtok(NULL, delimiter2));
+            printf("eyeZ: %f\n", eyeZ);
+          }else if (strcmp(token, "viewdir") == 0) {
                 viewDirX = protectedStrToF(strtok(NULL, delimiter1));
                 viewDirY = protectedStrToF(strtok(NULL, delimiter1));
                 viewDirZ = protectedStrToF(strtok(NULL, delimiter2));
-            } else if (strcmp(token, "vfov") == 0) {
+          } else if (strcmp(token, "vfov") == 0) {
                 vfov = protectedStrToF(strtok(NULL, delimiter2));
-            } else if (strcmp(token, "updir") == 0) {
+          } else if (strcmp(token, "updir") == 0) {
                 updirX = protectedStrToF(strtok(NULL, delimiter1));
                 updirY = protectedStrToF(strtok(NULL, delimiter1));
                 updirZ = protectedStrToF(strtok(NULL, delimiter2));
-            } else if (strcmp(token, "bkgcolor") == 0) {
+          } else if (strcmp(token, "bkgcolor") == 0) {
                 bcX = protectedStrToF(strtok(NULL, delimiter1));
                 bcY = protectedStrToF(strtok(NULL, delimiter1));
                 bcZ = protectedStrToF(strtok(NULL, delimiter2));
-            } else if ((strcmp(token, "mtlcolor") == 0) || (strcmp(token, "\nmtlcolor") == 0)) {
+          
+          } else if ((strcmp(token, "mtlcolor") == 0)) {
                 Odr = protectedStrToF(strtok(NULL, delimiter1));
                 Odg = protectedStrToF(strtok(NULL, delimiter1));
                 Odb = protectedStrToF(strtok(NULL, delimiter1));
@@ -273,49 +281,13 @@ int main() {
                 printf("weights: (%f, %f, %f)\n", ka, kd, ks);
                 n = atoi(strtok(NULL, delimiter2));
 
-                // token = strtok(NULL, delimiter1);
-                // // printf("token: %s\n", token);
-                // if(strcmp(token, "light")==0){
-                //     lightX = protectedStrToF(strtok(NULL, delimiter1));
-                //     lightY = protectedStrToF(strtok(NULL, delimiter1));
-                //     lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                //     isPointLight = atoi(strtok(NULL, delimiter1));
-                //     lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
-                //     c1 = 0.0;
-                //     c2 = 0.0;
-                //     c3 = 0.0;
-                //     printf("setting non attenuated light\n");
-                //     Light *light = malloc(sizeof(Light));
-                //     setLightParameters(light, lightX, lightY, lightZ, isPointLight, lightIntensity);
-                //     lightArray[lightIndex] = light;
-                //     lightIndex++;
-                //     token = strtok(NULL, delimiter1);
-                // }else if(strcmp(token, "attlight")==0){
-                //     lightX = protectedStrToF(strtok(NULL, delimiter1));
-                //     lightY = protectedStrToF(strtok(NULL, delimiter1));
-                //     lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                //     isPointLight = atoi(strtok(NULL, delimiter1));
-                //     lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
-                //     c1 = protectedStrToF(strtok(NULL, delimiter1));
-                //     c2 = protectedStrToF(strtok(NULL, delimiter1));
-                //     c3 = protectedStrToF(strtok(NULL, delimiter2));
-                //     printf("setting Attenuated light\n");
-                //     Light *light = malloc(sizeof(Light));
-                //     setAttLightParameters(light, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
-                //     lightArray[lightIndex] = light;
-                //     printLight(light);
-                //     printLight(lightArray[lightIndex]);
-                //     lightIndex++;
-                //     token = strtok(NULL, delimiter1);
-                // }
-                // printf("this is current token %s\n", token);
-            }else if ((strcmp(token, "sphere") == 0) || (strcmp(token, "\nsphere") == 0)) {
+          }else if ((strcmp(token, "sphere") == 0)) {
                     X = protectedStrToF(strtok(NULL, delimiter1));
                     Y = protectedStrToF(strtok(NULL, delimiter1));
                     Z = protectedStrToF(strtok(NULL, delimiter1));
                     r = protectedStrToF(strtok(NULL, delimiter2));
                     // printf("in Sphere: %f\n", r);
-
+                    
                     SphereType *sphere = malloc(sizeof(SphereType));
                     //SphereType sphere;
                     if(initializeSphere(sphere, X, Y, Z, r, m) == -1){
@@ -337,7 +309,8 @@ int main() {
                     sphereArray[m] = sphere;
                     m++;
                     printf("%d\n", m);
-            }  else if(strcmp(token, "light")==0){
+
+          }  else if(strcmp(token, "light")==0){
                     lightX = protectedStrToF(strtok(NULL, delimiter1));
                     lightY = protectedStrToF(strtok(NULL, delimiter1));
                     lightZ = protectedStrToF(strtok(NULL, delimiter1));
@@ -351,7 +324,7 @@ int main() {
                     setLightParameters(light, lightX, lightY, lightZ, isPointLight, lightIntensity);
                     lightArray[lightIndex] = light;
                     lightIndex++;
-            }else if(strcmp(token, "attlight")==0){
+          }else if(strcmp(token, "attlight")==0){
                     lightX = protectedStrToF(strtok(NULL, delimiter1));
                     lightY = protectedStrToF(strtok(NULL, delimiter1));
                     lightZ = protectedStrToF(strtok(NULL, delimiter1));
@@ -367,10 +340,9 @@ int main() {
                     printLight(light);
                     printLight(lightArray[lightIndex]);
                     lightIndex++;
-                                   }
-            token = strtok(NULL, delimiter1);
-            // printf("this is current token %s\n", token);
+          }
         }
+
         int length = m;
         int lengthOfLight = lightIndex;
         lightIndex = 0;
@@ -400,16 +372,7 @@ int main() {
         setViewingWindow(camera, 3);
         setLight(camera, lightArray, lengthOfLight);
 
-        // if(c1 > 0 || c2 > 0 || c3 > 0){
-        // }else{
-        //     printLight(&camera->light);
-        // }
-        //
-        // 
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
-
-        // printSphere(sphereArray[0]);
-        // printSphere(sphereArray[1]);
 
         // all the information has been collected to define image coordinates
 
