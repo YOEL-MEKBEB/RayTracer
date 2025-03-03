@@ -176,15 +176,7 @@ int main() {
             return 1;
         }
 
-          char buf2[100];
-        // if (fread(buf2, 1, sizeof(buf2), inputFile) < 0) {
-        //     printf("failed to read");
-        //     return 1;
-        // }
-
-        // start big if statement here
-
-        // char *token = strtok(buf2, delimiter1);
+        char buf2[100];
         char *token;
         char width[5];
         char height[5];

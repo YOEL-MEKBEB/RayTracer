@@ -28,3 +28,13 @@ clean:
 run:
 	make
 	./raytracer1b
+
+vecList.o: vecList.h vecList.c
+	$(CC) -c vecList.c
+
+test.o: test.c
+	$(CC) -c test.c
+
+test: test.o vector.o vecList.o
+	$(CC) test.o vector.o vecList.o -o test -lm
+	
