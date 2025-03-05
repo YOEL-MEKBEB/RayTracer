@@ -1,6 +1,7 @@
 #ifndef SPHERETYPE
 #define SPHERETYPE
 
+#include "vector.h"
 typedef struct {
     float x, y, z;
     float radius;
@@ -34,4 +35,29 @@ int setShinyFactor(SphereType *sphere, int shinyFactor);
 /// @brief prints the attributes of the sphere to the console for debuggin
 /// @param sphere a sphere pointer
 void printSphere(SphereType *sphere);
+#endif
+
+#ifndef TRIANGLE
+#define TRIANGLE
+typedef struct{
+    Vector face;
+    
+    float Odr, Odg, Odb;
+    float Osr, Osg, Osb;
+    float ka, kd, ks;
+    int shinyFactor;
+} Triangle;
+
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3);
+
+int setIntrinsicTriangle(Triangle *triangle, float r, float g, float b);
+
+int setSpecularTriangle(Triangle *triangle, float r, float g, float b);
+
+int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks);
+
+int setTriangleShinyFactor(Triangle *triangle, int shinyFactor);
+
+void printTriangle(Triangle *triangle);
+
 #endif

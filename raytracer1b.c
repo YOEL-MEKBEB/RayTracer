@@ -12,6 +12,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "vector.h"
+#include "vecList.h"
 
 /// @brief writes the header of the ppm file
 /// @param file
@@ -50,7 +51,9 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @param color
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
-               SphereType **sphereArray, int lengthOfArray) {
+               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces) {
+
+    printf("entered writeImage\n");
     int numWidth = atoi(width);
 
     int numHeight = atoi(height);
@@ -99,7 +102,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -138,9 +141,16 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
 /// @param token
 /// @return returns the converted value on success or NAN on error
 float protectedStrToF(char *token) {
+    // printf("%s\n", token);
     float value = strtof(token, NULL);
-    if (strtof(token, NULL) == 0.0){
-        if(strcmp("0", token) != 0 && strcmp("0.0", token) != 0) {
+
+    if (value== 0.0){
+        if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
+            printf("len of token: %lu\n", strlen(token));
+            return value;
+        }else{
+            printf("entered here\n");
+            int tok = (int) token[1];
             return NAN;
         }
     }
@@ -157,11 +167,14 @@ int main() {
     char *delimiter2 = "\n";
     char *delimiter3 = "\n\n";
     int m = 0;    // shape tag;
-    SphereType *sphereArray[10];
+    SphereType *sphereArray[10]; 
     Light* lightArray[10];
     int lightIndex = 0;
 
+    
     while (1) {
+    vec_list *vertices = malloc(sizeof(vec_list));
+    tri_list *faces = malloc(sizeof(tri_list));
         printf("input text file: ");
         scanf("%s", buf);
         if (strcmp(buf, "q") == 0) {
@@ -222,6 +235,11 @@ int main() {
         float Y;
         float Z;
         float r;
+
+        float vectorX;
+        float vectorY;
+        float vectorZ;
+    
      while(fgets(buf2, 100, inputFile) != NULL){
           token = strtok(buf2, delimiter1);
 
@@ -249,6 +267,7 @@ int main() {
                 updirX = protectedStrToF(strtok(NULL, delimiter1));
                 updirY = protectedStrToF(strtok(NULL, delimiter1));
                 updirZ = protectedStrToF(strtok(NULL, delimiter2));
+                printf("%f\n", updirZ);
           } else if (strcmp(token, "bkgcolor") == 0) {
                 bcX = protectedStrToF(strtok(NULL, delimiter1));
                 bcY = protectedStrToF(strtok(NULL, delimiter1));
@@ -332,7 +351,37 @@ int main() {
                     printLight(light);
                     printLight(lightArray[lightIndex]);
                     lightIndex++;
-          }
+          }else if(strcmp(token, "v") == 0){
+            
+                    vectorX = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorY = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorZ = protectedStrToF(strtok(NULL, delimiter2));
+
+                    Vector vertex;
+                    if(initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1){
+                        printf("the vertex coordinates are not a number\n");
+                        return 1;
+                    }
+
+                    vec_list_add(vertices, &vertex);
+              
+          }else if (strcmp(token, "f") == 0){
+                  
+                    vectorX = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorY = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorZ = protectedStrToF(strtok(NULL, delimiter2));
+
+                    Triangle triangle;
+                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ);
+
+                    setIntrinsicTriangle(&triangle, Odr, Odg, Odb);
+                    setSpecularTriangle(&triangle, Osr, Osg, Osb);
+                    setTriangleWeight(&triangle, ka, kd, ks);
+                    setTriangleShinyFactor(&triangle, n);
+                    
+                    
+                    tri_list_add(faces, &triangle);
+                 }
         }
 
         int length = m;
@@ -366,6 +415,23 @@ int main() {
 
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
+
+
+
+
+
+        for(int i = 1; i < vertices->length + 1; i++){
+            printf("v%d ", i);
+            printVector(vec_list_get(vertices, i));
+        }
+        printf("%d\n", faces->length);
+        for(int i = 1; i < faces->length + 1; i++){
+            
+            printf("f%d ", i);
+            printTriangle(tri_list_get(faces, i));
+            
+        }
+
         // all the information has been collected to define image coordinates
 
         //****************************************************************** */
@@ -393,7 +459,7 @@ int main() {
             free(backgroundColor);
             return 1;
         }
-        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length) ==
+        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces) ==
             -1) {
             fclose(ppmFile);
             fclose(inputFile);
@@ -412,6 +478,9 @@ int main() {
         for(int i = 0; i < lengthOfLight; i++){
             free(lightArray[i]);
         }
+
+    vec_list_clear(vertices);
+    tri_list_clear(faces);
     }
 
     free(camera);
