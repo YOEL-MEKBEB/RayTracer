@@ -16,7 +16,7 @@ void initializeColorType(ColorType *color, float r, float g, float b) {
 }
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces) {
+                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list* normals) {
     
     // printf("%d\n", sizeOfArray);
     //
@@ -212,7 +212,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             // printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal);
+        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
         
     }else if(faces->length <= 0){
             // printf("entered case 1\n");
@@ -220,7 +220,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
     } else if(t[minIndex] == -1 && t_faces[minFaceIndex] > -1){
         
             printf("entered case 2\n");
@@ -231,7 +231,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal);
+        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
     }else if (t[minIndex] > -1 && t_faces[minFaceIndex] == -1){
         
             printf("entered case 3\n");
@@ -241,7 +241,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
         }
-        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal);
+        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
     } else{
             printf("entered case 4\n");
         if(t[minIndex] < t_faces[minFaceIndex]){
@@ -250,18 +250,18 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
         }
     }
     return color;
 }
 
-ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *planeNormal){
+ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *planeNormal, vec_list* normals){
 
 
     ColorType color;
     if(strcmp(objectType, "triangle") == 0){
-        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, planeNormal);
+        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, planeNormal, normals);
         return color;
     }
     Vector intrinsicColor;
@@ -432,7 +432,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 }
 
 
-ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *planeNormal){
+ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *planeNormal, vec_list* normals){
     
     Vector intrinsicColor;
     Vector specularColor;
@@ -508,6 +508,7 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
         printf("plane normal\n");
         printVector(planeNormal);
         float nDotL = dotProduct(planeNormal, &L[i]);
+        printf("nDotL: %f\n", nDotL);
         float nDotH = dotProduct(planeNormal, &H[i]);
         if(acos(nDotL) > M_PI/2){
             initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
@@ -515,6 +516,9 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
             diffuseTerm = scalarVecMult(triangle->kd * nDotL, &intrinsicColor);
             
         }
+        printTriangle(triangle);
+
+        printVector(&diffuseTerm);
         
         Vector specularTerm = scalarVecMult(triangle->ks * pow(fmax(0.0, nDotH),triangle->shinyFactor), &specularColor);
         Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
@@ -522,7 +526,6 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
         printLight(lightArray[i]);
         sumOfLights = vectorAdd(&sumOfLights, &sum1);
     }
-
 
 
     printVector(&sumOfLights);

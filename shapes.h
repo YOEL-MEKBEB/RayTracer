@@ -41,7 +41,7 @@ void printSphere(SphereType *sphere);
 #define TRIANGLE
 typedef struct{
     Vector face;
-    
+    Vector normal;
     float Odr, Odg, Odb;
     float Osr, Osg, Osb;
     float ka, kd, ks;
@@ -49,6 +49,8 @@ typedef struct{
 } Triangle;
 
 int initializeTriangle(Triangle *triangle, float v1, float v2, float v3);
+
+int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3);
 
 int setIntrinsicTriangle(Triangle *triangle, float r, float g, float b);
 

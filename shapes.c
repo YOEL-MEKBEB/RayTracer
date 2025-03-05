@@ -1,6 +1,7 @@
 #include "shapes.h"
 
 #include "stdio.h"
+#include "vector.h"
 #include <math.h>
 int initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m){
 
@@ -104,6 +105,11 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3){
     triangle->face.dy = v2;
     triangle->face.dz = v3;
 
+
+    triangle->normal.dx = 0;
+    triangle->normal.dy = 0;
+    triangle->normal.dz = 0;
+
     triangle->Odr = 0.0;
     triangle->Odg = 0.0;
     triangle->Odb = 0.0;
@@ -120,6 +126,19 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3){
     triangle->shinyFactor = 0;
     return 0;
     
+}
+
+int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3){
+    if(isnan(n1) || isnan(n2) || isnan(n3)){
+        printf("Triangle normals are not a number\n");
+        return -1;
+    }
+    
+    triangle->normal.dx = n1;
+    triangle->normal.dy = n2;
+    triangle->normal.dz = n3;
+
+    return 0;
 }
 
 
@@ -177,6 +196,8 @@ int setTriangleShinyFactor(Triangle *triangle, int shinyFactor){
 void printTriangle(Triangle *triangle){
     
     printf("triangle vertices: (x, y, z) = (%f, %f, %f)\n", triangle->face.dx, triangle->face.dy, triangle->face.dz);
+    printf("triangle normal: ");
+    printVector(&triangle->normal);
     printf("triangle Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", triangle->Odr, triangle->Odg, triangle->Odb);
     printf("triangle specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", triangle->Osr, triangle->Osg, triangle->Osb);
     printf("triangle weights: (ka, kd, ks) = (%f, %f, %f)\n", triangle->ka, triangle->kd, triangle->ks);

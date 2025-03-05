@@ -51,7 +51,7 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @param color
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
-               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces) {
+               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals) {
 
     printf("entered writeImage\n");
     int numWidth = atoi(width);
@@ -102,7 +102,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -145,6 +145,7 @@ float protectedStrToF(char *token) {
     float value = strtof(token, NULL);
 
     if (value== 0.0){
+        // also accounts for the carriage return character "\r"
         if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
             printf("len of token: %lu\n", strlen(token));
             return value;
@@ -165,7 +166,7 @@ int main() {
     char buf[20];
     char *delimiter1 = " ";
     char *delimiter2 = "\n";
-    char *delimiter3 = "\n\n";
+    char *delimiter3 = "//";
     int m = 0;    // shape tag;
     SphereType *sphereArray[10]; 
     Light* lightArray[10];
@@ -175,6 +176,7 @@ int main() {
     while (1) {
     vec_list *vertices = malloc(sizeof(vec_list));
     tri_list *faces = malloc(sizeof(tri_list));
+    vec_list *normals = malloc(sizeof(vec_list));
         printf("input text file: ");
         scanf("%s", buf);
         if (strcmp(buf, "q") == 0) {
@@ -189,6 +191,8 @@ int main() {
             return 1;
         }
 
+
+        int isNormalAcquired = 0;
         char buf2[100];
         char *token;
         char width[5];
@@ -239,6 +243,12 @@ int main() {
         float vectorX;
         float vectorY;
         float vectorZ;
+
+
+        // initialized to 0 for flat triangle
+        float normal1 = 0;
+        float normal2 = 0;
+        float normal3 = 0;
     
      while(fgets(buf2, 100, inputFile) != NULL){
           token = strtok(buf2, delimiter1);
@@ -366,13 +376,26 @@ int main() {
                     vec_list_add(vertices, &vertex);
               
           }else if (strcmp(token, "f") == 0){
-                  
+                  if(!isNormalAcquired){
+                      
                     vectorX = protectedStrToF(strtok(NULL, delimiter1));
                     vectorY = protectedStrToF(strtok(NULL, delimiter1));
                     vectorZ = protectedStrToF(strtok(NULL, delimiter2));
+                  }else{
+
+                        
+                    vectorX = protectedStrToF(strtok(NULL, delimiter3));
+                    normal1 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorY = protectedStrToF(strtok(NULL, delimiter3));
+                    normal2 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorZ = protectedStrToF(strtok(NULL, delimiter3));
+                    normal3 = protectedStrToF(strtok(NULL, delimiter2));
+                      
+                  }
 
                     Triangle triangle;
                     initializeTriangle(&triangle, vectorX, vectorY, vectorZ);
+                    setTriangleNormal(&triangle, normal1, normal2, normal3);
 
                     setIntrinsicTriangle(&triangle, Odr, Odg, Odb);
                     setSpecularTriangle(&triangle, Osr, Osg, Osb);
@@ -381,7 +404,22 @@ int main() {
                     
                     
                     tri_list_add(faces, &triangle);
-                 }
+            }else if(strcmp(token, "vn") == 0){
+                isNormalAcquired = 1;
+
+                vectorX = protectedStrToF(strtok(NULL, delimiter1));
+                vectorY = protectedStrToF(strtok(NULL, delimiter1));
+                vectorZ = protectedStrToF(strtok(NULL, delimiter2));
+
+                Vector vertex;
+                if(initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1){
+                    printf("the vertex coordinates are not a number\n");
+                    return 1;
+                }
+                vec_list_add(normals, &vertex);
+                
+                
+            }
         }
 
         int length = m;
@@ -459,7 +497,7 @@ int main() {
             free(backgroundColor);
             return 1;
         }
-        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces) ==
+        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals) ==
             -1) {
             fclose(ppmFile);
             fclose(inputFile);
