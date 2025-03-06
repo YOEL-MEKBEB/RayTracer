@@ -32,10 +32,10 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 /// @param sizeOfArray size of sphereArray
 /// @return 
 ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,
-                   Vector *surfacePoint,  Light** light, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *planeNormal, vec_list* normals);
+                   Vector *surfacePoint,  Light** light, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *normalCoord, vec_list* normals);
 
 
-ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light** lightArray, int numberOfLights, Vector *planeNormal, vec_list* normals);
+ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light** lightArray, int numberOfLights, Vector *normalCoord, vec_list* normals);
 /// @brief prints the attributes of the color for debugging
 /// @param color
 void printColor(ColorType *color);

@@ -46,9 +46,10 @@ typedef struct{
     float Osr, Osg, Osb;
     float ka, kd, ks;
     int shinyFactor;
+    int isSmoothShaded;
 } Triangle;
 
-int initializeTriangle(Triangle *triangle, float v1, float v2, float v3);
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth);
 
 int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3);
 

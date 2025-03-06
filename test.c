@@ -26,15 +26,17 @@ int main() {
     // Camera *camera = malloc(sizeof(Camera));
     // ColorType *backgroundColor = malloc(sizeof(ColorType));
 
-    vec_list *vertices = malloc(sizeof(vec_list));
 
-    Vector new_vec;
-    initialize_vector(&new_vec, 0.0, 0.0, 0.0);
+    char string[] = "1//134 2//2 3//3";
 
+    char *token;
+    token = strtok(string, "/");
+    printf("%s\n", token);
+    // token = strtok(NULL, "/");
+    // printf("%s\n", token);
+    token = strtok(NULL, " ");
+    token = &token[1];
+    printf("%s\n", token);
     
-    vec_list_add(vertices, &new_vec);
-
-    printf("%u\n", vertices->length);
-    printVector(vec_list_get(vertices, 1));
     return 0;
 }

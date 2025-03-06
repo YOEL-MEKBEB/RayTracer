@@ -141,17 +141,17 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
 /// @param token
 /// @return returns the converted value on success or NAN on error
 float protectedStrToF(char *token) {
-    // printf("%s\n", token);
+    printf("%s\n", token);
     float value = strtof(token, NULL);
 
     if (value== 0.0){
         // also accounts for the carriage return character "\r"
         if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
-            printf("len of token: %lu\n", strlen(token));
             return value;
         }else{
             printf("entered here\n");
             int tok = (int) token[1];
+            printf("%d\n", tok);
             return NAN;
         }
     }
@@ -166,7 +166,7 @@ int main() {
     char buf[20];
     char *delimiter1 = " ";
     char *delimiter2 = "\n";
-    char *delimiter3 = "//";
+    char *delimiter3 = "/";
     int m = 0;    // shape tag;
     SphereType *sphereArray[10]; 
     Light* lightArray[10];
@@ -249,6 +249,10 @@ int main() {
         float normal1 = 0;
         float normal2 = 0;
         float normal3 = 0;
+
+        float vt1;
+        float vt2;
+        float vt3;
     
      while(fgets(buf2, 100, inputFile) != NULL){
           token = strtok(buf2, delimiter1);
@@ -383,30 +387,54 @@ int main() {
                     vectorZ = protectedStrToF(strtok(NULL, delimiter2));
                   }else{
 
-                        
+                    printf("entered else block\n");
                     vectorX = protectedStrToF(strtok(NULL, delimiter3));
-                    normal1 = protectedStrToF(strtok(NULL, delimiter1));
+                    // vt1 = protectedStrToF(strtok(NULL, delimiter3));
+                    char *temp = strtok(NULL, delimiter1);
+                    temp = &temp[1];
+                    
+                    normal1 = protectedStrToF(temp);
+                    
                     vectorY = protectedStrToF(strtok(NULL, delimiter3));
-                    normal2 = protectedStrToF(strtok(NULL, delimiter1));
+
+                    
+                    temp = strtok(NULL, delimiter1);
+                    temp = &temp[1];
+                    // vt2 = protectedStrToF(strtok(NULL, delimiter3));
+                    normal2 = protectedStrToF(temp);
+                    
                     vectorZ = protectedStrToF(strtok(NULL, delimiter3));
-                    normal3 = protectedStrToF(strtok(NULL, delimiter2));
+                    temp = strtok(NULL, delimiter2);
+                    temp = &temp[1];
+                    // vt3 = protectedStrToF(strtok(NULL, delimiter3));
+                    normal3 = protectedStrToF(temp);
                       
                   }
 
                     Triangle triangle;
-                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ);
-                    setTriangleNormal(&triangle, normal1, normal2, normal3);
+                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired);
+                    if(setTriangleNormal(&triangle, normal1, normal2, normal3) == -1){
+                        printf("%f\n", normal1);
+                        printf("%f\n", normal2);
+                        printf("%f\n", normal3);
+                        return 1;
+                        
+                    }
 
                     setIntrinsicTriangle(&triangle, Odr, Odg, Odb);
                     setSpecularTriangle(&triangle, Osr, Osg, Osb);
                     setTriangleWeight(&triangle, ka, kd, ks);
                     setTriangleShinyFactor(&triangle, n);
-                    
+
+
+                    printf("triangle initialization: ");
+                    printTriangle(&triangle);
                     
                     tri_list_add(faces, &triangle);
             }else if(strcmp(token, "vn") == 0){
                 isNormalAcquired = 1;
 
+                printf("entered the vector normal condition \n");
                 vectorX = protectedStrToF(strtok(NULL, delimiter1));
                 vectorY = protectedStrToF(strtok(NULL, delimiter1));
                 vectorZ = protectedStrToF(strtok(NULL, delimiter2));
@@ -469,6 +497,11 @@ int main() {
             printTriangle(tri_list_get(faces, i));
             
         }
+        for(int i = 1; i < normals->length + 1; i++){
+            
+            printf("vn%d ", i);
+            printVector(vec_list_get(normals, i));
+        }
 
         // all the information has been collected to define image coordinates
 
@@ -519,6 +552,7 @@ int main() {
 
     vec_list_clear(vertices);
     tri_list_clear(faces);
+    vec_list_clear(normals);
     }
 
     free(camera);

@@ -94,7 +94,7 @@ void printSphere(SphereType *sphere){
 }
 
 
-int initializeTriangle(Triangle *triangle, float v1, float v2, float v3){
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth){
     
     
     if(isnan(v1) || isnan(v2) || isnan(v3)){
@@ -124,6 +124,8 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3){
     triangle->ks = 0.0;
 
     triangle->shinyFactor = 0;
+
+    triangle->isSmoothShaded = isSmooth;
     return 0;
     
 }
