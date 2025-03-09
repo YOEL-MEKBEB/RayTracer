@@ -40,25 +40,37 @@ int vec_list_add(vec_list *list, Vector *vec){
   }
 
   if(list->length == list->capacity){
-    Vector **new_data = realloc(list, 2 * list->capacity * sizeof(Vector *));
+
+    Vector **new_data = realloc(list->data, 2 * list->capacity * sizeof(Vector *));
+  
     if(new_data == NULL){
+      printf("entered here");
       return -1;
     }else{
       list->data = new_data;
     }
-    
+    // list->length = list->capacity;
     list->capacity = list->capacity * 2;
+    printf("new capacity: %d\n", list->capacity);
+    printf("length: %d\n", list->length);
   }
 
+  // printf("is it actually here\n");
+
+  // printf("in vec list: %d\n",  list->length);
   if((list->data[list->length] = malloc(sizeof(Vector))) == NULL){
+    printf("problem is here\n");
     return -1;
   }
-
+  // printf("are we here\n");
+  // printf("in vec list: %d\n",  list->length);
   if(initialize_vector(list->data[list->length], vec->dx, vec->dy, vec->dz) == -1){
     printf("vector in vec_list_add contains nan\n");
   }
 
   list->length++;
+
+  // printf("is the issue here?\n");
   
   return 0;
 

@@ -3,7 +3,7 @@ eye 0 0 10
 viewdir 0 0 -1
 vfov 45
 updir 0 1 0
-bkgcolor 0 0 0
+bkgcolor 0.2 0.2 0.2
 mtlcolor 0.8 0.3 0.5 1 1 1 0.2 0.6 0.2 50
 attlight 7 0 -4 1 0.5 0.1 0.1 0.01
 attlight -2 4 -4 1 0.5 0.1 0.1 0.01
