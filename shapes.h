@@ -46,16 +46,20 @@ void printSphere(SphereType *sphere);
 typedef struct{
     Vector face;
     Vector normal;
+    Vector texture;
     float Odr, Odg, Odb;
     float Osr, Osg, Osb;
     float ka, kd, ks;
     int shinyFactor;
     int isSmoothShaded;
+    int useTexture;
 } Triangle;
 
-int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth);
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth, int useTexture);
 
 int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3);
+
+int setTriangleTexture(Triangle *triangle, float t1, float t2, float t3);
 
 int setIntrinsicTriangle(Triangle *triangle, float r, float g, float b);
 

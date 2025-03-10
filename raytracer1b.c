@@ -52,7 +52,7 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @param color
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
-               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals, tex_list *textures) {
+               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals, tex_list *textures, vec_list* texCoord) {
 
     printf("entered writeImage\n");
     int numWidth = atoi(width);
@@ -103,7 +103,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals, textures);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals, textures, texCoord);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -178,6 +178,7 @@ int main() {
         vec_list *vertices = malloc(sizeof(vec_list));
         tri_list *faces = malloc(sizeof(tri_list));
         vec_list *normals = malloc(sizeof(vec_list));
+        vec_list *textureCoord = malloc(sizeof(vec_list));
         tex_list *textures = malloc(sizeof(tex_list));
 
         tex_list_init(textures);
@@ -199,6 +200,8 @@ int main() {
 
         int isNormalAcquired = 0;
         int useTexture = 0;
+        int isTexCoord = 0;
+        
         char buf2[100];
         char *token;
         char width[5];
@@ -256,10 +259,12 @@ int main() {
         float normal2 = 0;
         float normal3 = 0;
 
-        float vt1;
-        float vt2;
-        float vt3;
+        float vt1 = 0;
+        float vt2 = 0;
+        float vt3 = 0;
 
+        float u;
+        float v;
 
     
      while(fgets(buf2, 100, inputFile) != NULL){
@@ -389,14 +394,19 @@ int main() {
                     vec_list_add(vertices, &vertex);
               
           }else if (strcmp(token, "f") == 0){
-                  if(!isNormalAcquired){
-                      
+                
+                    printf("in face section\n");
+                    printf("%d\n", isNormalAcquired);
+                    printf("%d\n", useTexture);
+              // create a bettter parsing system
+                  if(!isNormalAcquired && !useTexture){
+                    printf("if 1\n");  
                     vectorX = protectedStrToF(strtok(NULL, delimiter1));
                     vectorY = protectedStrToF(strtok(NULL, delimiter1));
                     vectorZ = protectedStrToF(strtok(NULL, delimiter2));
-                  }else{
+                  }else if(isNormalAcquired && !useTexture){
 
-                    printf("entered else block\n");
+                    printf("if 2\n");  
                     vectorX = protectedStrToF(strtok(NULL, delimiter3));
                     // vt1 = protectedStrToF(strtok(NULL, delimiter3));
                     char *temp = strtok(NULL, delimiter1);
@@ -418,16 +428,46 @@ int main() {
                     // vt3 = protectedStrToF(strtok(NULL, delimiter3));
                     normal3 = protectedStrToF(temp);
                       
+                  }else if(!isNormalAcquired && useTexture){
+                    printf("if 3\n");
+                        vectorX = protectedStrToF(strtok(NULL, delimiter3));
+                        vt1 = protectedStrToF(strtok(NULL, delimiter1));
+                        vectorY = protectedStrToF(strtok(NULL, delimiter3));
+                        vt2 = protectedStrToF(strtok(NULL, delimiter1));
+                        vectorZ = protectedStrToF(strtok(NULL, delimiter3));
+                        vt3 = protectedStrToF(strtok(NULL, delimiter2));
+                  }else if(isNormalAcquired && useTexture){
+
+                        printf("in the else statement\n");
+                        vectorX = protectedStrToF(strtok(NULL, delimiter3));
+                        vt1 = protectedStrToF(strtok(NULL, delimiter3));
+                        normal1 = protectedStrToF(strtok(NULL, delimiter1));
+                        vectorY = protectedStrToF(strtok(NULL, delimiter3));
+                        vt2 = protectedStrToF(strtok(NULL, delimiter3));
+                        normal2 = protectedStrToF(strtok(NULL, delimiter1));
+                        vectorZ = protectedStrToF(strtok(NULL, delimiter3));
+                        vt3 = protectedStrToF(strtok(NULL, delimiter3));
+                        normal3 = protectedStrToF(strtok(NULL, delimiter2));
                   }
 
+                    printf("use texture: %d\n", useTexture);
+
                     Triangle triangle;
-                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired);
+                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired, useTexture);
                     if(setTriangleNormal(&triangle, normal1, normal2, normal3) == -1){
                         printf("%f\n", normal1);
                         printf("%f\n", normal2);
                         printf("%f\n", normal3);
                         return 1;
                         
+                    }
+
+                    if(setTriangleTexture(&triangle, vt1, vt2, vt3) == -1){
+                        
+                        printf("%f\n", vt1);
+                        printf("%f\n", vt2);
+                        printf("%f\n", vt3);
+                        return 1;
                     }
 
                     setIntrinsicTriangle(&triangle, Odr, Odg, Odb);
@@ -469,7 +509,7 @@ int main() {
 
                 FILE *ppmFile = fopen(filePath, "r");
                 char ppmbuf[100];
-                fgets(ppmbuf, 1024, ppmFile);
+                fgets(ppmbuf, 100, ppmFile);
                 
                 printf("in texture section\n");
                 char *last;
@@ -494,6 +534,18 @@ int main() {
                 tex_list_add(textures, image);
                 
                 
+            }else if(strcmp(token, "vt") == 0){
+                printf("entered vt section\n");
+                isTexCoord = 1;
+                u = protectedStrToF(strtok(NULL, delimiter1));
+                v = protectedStrToF(strtok(NULL, delimiter2));
+
+                Vector texCoord;
+                if(initialize_vector(&texCoord, u, v, 0.0) == -1){
+                    printf("texture coordinate array not created properly\n");
+                    return 1;
+                }
+                vec_list_add(textureCoord, &texCoord);
             }
         }
 
@@ -577,7 +629,7 @@ int main() {
             free(backgroundColor);
             return 1;
         }
-        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals, textures) ==
+        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals, textures, textureCoord) ==
             -1) {
             fclose(ppmFile);
             fclose(inputFile);
@@ -614,6 +666,7 @@ int main() {
         tri_list_clear(faces);
         vec_list_clear(normals);
         tex_list_clear(textures);
+        vec_list_clear(textureCoord);
     
     }
 

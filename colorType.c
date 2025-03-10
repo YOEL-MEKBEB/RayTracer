@@ -16,7 +16,7 @@ void initializeColorType(ColorType *color, float r, float g, float b) {
 }
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list* normals, tex_list *textures) {
+                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list* normals, tex_list *textures, vec_list *texCoord) {
     
     // printf("%d\n", sizeOfArray);
     //
@@ -83,7 +83,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         }
     }
 
-    Vector normal;
+    Vector normalList[faces->length];
     float alphaList[faces->length];
     float betaList[faces->length];
     float gammaList[faces->length];
@@ -91,6 +91,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
     for (int i = 1; i < faces->length + 1; i++){
         // printf("entered faces loop\n");
         Triangle *triangle = tri_list_get(faces, i);
+        Vector normal;
 
         int index1 = (int) triangle->face.dx;
         int index2 = (int) triangle->face.dy;
@@ -107,6 +108,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         
         normal = crossProduct(&vector1, &vector2);
 
+        // printf("normal calculation\n");
         // printVector(&normal);
 
         A = normal.dx;
@@ -169,6 +171,9 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         betaList[i-1] = beta;
         gammaList[i-1] = gamma;
         
+        normal = normalize(&normal);
+        normalList [i-1] = normal;
+        
 
         if(t < 0){
             t_faces[i-1] = -1;
@@ -179,7 +184,6 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         }
         
     } 
-    normal = normalize(&normal);
 
 
     // printf("outside of loop\n" );
@@ -207,7 +211,10 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
     
-
+    Vector barycentric;
+    Vector normal;
+    
+    
     
      if ((t[minIndex] == -1 || sizeOfArray == 0) && t_faces[minFaceIndex] == -1) {
         return *backgroundColor;
@@ -216,10 +223,9 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             Triangle *triangle = tri_list_get(faces, minFaceIndex + 1);
+            normal = normalList[minFaceIndex];
 
-            if(triangle->isSmoothShaded){
-                initialize_vector(&normal, alphaList[minFaceIndex], betaList[minFaceIndex], gammaList[minFaceIndex]);
-            }        
+            initialize_vector(&barycentric, alphaList[minFaceIndex], betaList[minFaceIndex], gammaList[minFaceIndex]);
             // printf("entered case 0\n");
             if(initialize_vector(&pointOfintersection, ray->x + t_faces[minFaceIndex] * ray->dx, ray->y + t_faces[minFaceIndex] * ray->dy,
                              ray->z + t_faces[minFaceIndex] * ray->dz) == -1){
@@ -228,7 +234,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             // printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
+        color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric , normals, textures, texCoord, faces, vertices);
         
     }else if(faces->length <= 0){
             // printf("entered case 1\n");
@@ -236,48 +242,54 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric, normals, textures, texCoord, faces, vertices);
     } else if(t[minIndex] == -1 && t_faces[minFaceIndex] > -1){
         
-            printf("entered case 2\n");
+            // printf("entered case 2\n");
+            // printf("min face index: %d\n", minFaceIndex);
+            Triangle *triangle = tri_list_get(faces, minFaceIndex + 1);
+            normal = normalList[minFaceIndex];
+
+            
+            initialize_vector(&barycentric, alphaList[minFaceIndex], betaList[minFaceIndex], gammaList[minFaceIndex]);
             if(initialize_vector(&pointOfintersection, ray->x + t_faces[minFaceIndex] * ray->dx, ray->y + t_faces[minFaceIndex] * ray->dy,
                              ray->z + t_faces[minFaceIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
 
 
-            printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
+            // printVector(&pointOfintersection);
+        color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric,normals, textures, texCoord, faces, vertices);
     }else if (t[minIndex] > -1 && t_faces[minFaceIndex] == -1){
         
-            printf("entered case 3\n");
+            // printf("entered case 3\n");
             // printf("%f\n", t[minIndex]);
             // printf("%f\n", t_faces[minFaceIndex]);
         if(initialize_vector(&pointOfintersection, ray->x + t[minIndex] * ray->dx, ray->y + t[minIndex] * ray->dy,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
         }
-        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
+        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric, normals, textures, texCoord, faces, vertices);
     } else{
-            printf("entered case 4\n");
+            // printf("entered case 4\n");
         if(t[minIndex] < t_faces[minFaceIndex]){
         
             if(initialize_vector(&pointOfintersection, ray->x + t[minIndex] * ray->dx, ray->y + t[minIndex] * ray->dy,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals,textures);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric,normals,textures, texCoord, faces, vertices);
         }
     }
     return color;
 }
 
-ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *normalCoord, vec_list* normals, tex_list* textures){
+ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *normalCoord, Vector * barycentric, vec_list* normals, tex_list* textures, vec_list *texCoord, tri_list *faces, vec_list *vertices){
 
 
     ColorType color;
     if(strcmp(objectType, "triangle") == 0){
-        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, normalCoord, normals);
+        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, normalCoord, barycentric, normals, textures, texCoord, sphereArray, sizeOfArray, faces, vertices);
         return color;
     }
     Vector intrinsicColor;
@@ -419,7 +431,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
         int column = (int) (u * list->length);
         Vector *texColor = vec_list_get(list, column+1);
         if(texColor == NULL){
-            printf("it's over\n");
+            printf("failed to obtain texture color for sphere\n");
             initializeColorType(&color, -1, -1, -1);
             return color;
             
@@ -492,8 +504,9 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 }
 
 
-ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *normalCoord, vec_list* normals){
+ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *normalCoord, Vector *barycentric, vec_list* normals, tex_list *textures, vec_list *texCoord, SphereType **sphereArray, int sizeOfArray, tri_list *faces, vec_list* vertices){
     
+    // printf("entered shade triangle\n");
     Vector intrinsicColor;
     Vector specularColor;
     Vector rayOrigin;
@@ -508,9 +521,7 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
 
     Vector planeNormal;
     if(triangle->isSmoothShaded){
-
-    // within this if statement normalCoord contains the barycentric coordinates
-        
+                
         int normalIndex1 = triangle->normal.dx;
         int normalIndex2 = triangle->normal.dy;
         int normalIndex3 = triangle->normal.dz;
@@ -519,9 +530,9 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
         Vector* normal2 = vec_list_get(normals, normalIndex2);
         Vector* normal3 = vec_list_get(normals, normalIndex3);
 
-        Vector alphaNormal1 = scalarVecMult(normalCoord->dx, normal1);
-        Vector betaNormal2 = scalarVecMult(normalCoord->dy, normal2);
-        Vector gammaNormal3 = scalarVecMult(normalCoord->dz, normal3);
+        Vector alphaNormal1 = scalarVecMult(barycentric->dx, normal1);
+        Vector betaNormal2 = scalarVecMult(barycentric->dy, normal2);
+        Vector gammaNormal3 = scalarVecMult(barycentric->dz, normal3);
 
 
         planeNormal = vectorAdd(&alphaNormal1, &betaNormal2);
@@ -529,20 +540,71 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
     
         planeNormal = normalize(&planeNormal);
     }else{
+        // printf("entered the else statement\n");
 
         // within this if statement normalCoord contains the coordinates of the plane normal
         initialize_vector(&planeNormal, normalCoord->dx, normalCoord->dy, normalCoord->dz);
     }
 
-    
 
-    if(initialize_vector(&intrinsicColor, triangle->Odr, triangle->Odg, triangle->Odb) == -1){
-        
-        printf("intrinsic color couldn't be created in triangle shadeRay\n");
-        initializeColorType(&color, -1, -1, -1);
-        return color;
-    }
     
+    if(triangle->useTexture){
+        // printf("using texture %d\n", triangle->useTexture);
+        Texture *tex = tex_list_get(textures, triangle->useTexture);
+        
+        Vector *vt1 = vec_list_get(texCoord, triangle->texture.dx);
+        Vector *vt2 = vec_list_get(texCoord, triangle->texture.dy);
+        Vector *vt3 = vec_list_get(texCoord, triangle->texture.dz);
+
+        
+        //calculate interpolated tex coord of intersection point
+
+        Vector alpha = scalarVecMult(barycentric->dx, vt1);
+        Vector beta = scalarVecMult(barycentric->dy, vt2);
+        Vector gamma = scalarVecMult(barycentric->dz, vt3);
+
+        Vector sum1 = vectorAdd(&alpha, &beta);
+        Vector interpolatedTex = vectorAdd(&sum1, &gamma);
+
+
+        float u = interpolatedTex.dx;
+        float v = interpolatedTex.dy;
+        
+
+
+        int row = (int) (v * tex->height);
+
+
+        vec_list *list = tex->data[row];
+
+        int column = (int) (u * list->length);
+
+
+        column = column%list->length;
+        
+        Vector *texColor = vec_list_get(list, column + 1);
+        if(texColor == NULL){
+            
+            printf("failed to obtain texture color for triangle\n");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
+        }
+
+        if(initialize_vector(&intrinsicColor, texColor->dx, texColor->dy, texColor->dz) == -1){
+            printf("intrinsic color couldn't be created in shadeRay\n");
+                initializeColorType(&color, -1, -1, -1);
+                return color;
+        }
+    
+    }else{
+        if(initialize_vector(&intrinsicColor, triangle->Odr, triangle->Odg, triangle->Odb) == -1){
+        
+            printf("intrinsic color couldn't be created in triangle shadeRay\n");
+            initializeColorType(&color, -1, -1, -1);
+            return color;
+        }
+    }
+
 
     if(initialize_vector(&specularColor, triangle->Osr, triangle->Osg, triangle->Osb) == -1){
         printf("specular Color couldn't be created in triangle shadeRay\n");
@@ -569,6 +631,7 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
 
             L[i] = normalize(&L[i]);
         }else{
+            // printf("entered directional light statement\n");
             L[i] = scalarVecMult(-1, &lightArray[i]->lightLocation);
             attenuationFactor[i] = 1.0;
             L[i] = normalize(&L[i]);
@@ -581,22 +644,163 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
     initialize_vector(&sumOfLights, 0.0, 0.0, 0.0);
     V = vectorAdd(&rayOrigin, &negSurfacePoint);
     V = normalize(&V);
+    // printVector(&V);
         
     
     Vector ambientTerm = scalarVecMult(triangle->ka, &intrinsicColor);
+
+
+
+
+
+    
+    int shadowFlag[numberOfLights];
+    for(int j=0; j<numberOfLights; j++){
+    
+        RayType lightRay;
+        initializeRayType(&lightRay, surfacePoint->dx,surfacePoint->dy,  surfacePoint->dz);
+        setDirection(&lightRay, L[j].dx, L[j].dy, L[j].dz);
+        
+        float A = 0.0; 
+        float B = 0.0;
+        float C = 0.0;
+        SphereType* obstructingSphere;
+        float t;
+        shadowFlag[j] = 1;
+        for (int i = 0; i < sizeOfArray; i++){
+
+            obstructingSphere = sphereArray[i];
+            A = pow(lightRay.dx, 2) + pow(lightRay.dy, 2) + pow(lightRay.dz, 2);
+            if (A == 0) {
+                printf("light has a 0 vector for it's direction");
+                initializeColorType(&color, -1, -1, -1);
+                return color;
+            }
+            B = 2 * (lightRay.x - obstructingSphere->x) * lightRay.dx + 2 * (lightRay.y - obstructingSphere->y) * lightRay.dy +
+                2 * (lightRay.z - obstructingSphere->z) * lightRay.dz;
+            C = pow((lightRay.x - obstructingSphere->x), 2) + pow((lightRay.y - obstructingSphere->y), 2) +
+                pow((lightRay.z - obstructingSphere->z), 2) - pow((obstructingSphere->radius), 2);
+
+            if ((pow(B, 2) - 4 * A * C) < 0) {
+                    continue;
+                // return *backgroundColor;
+            } else if ((pow(B, 2) - 4 * A * C) == 0) {
+                t = (-1 * B) / (2 * A);
+                
+                                
+            } else {
+                float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+                float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+                if(t1 < t2){
+                    t = t1;
+                }else{
+                    t = t2;
+                }
+            }
+
+            if(t <= 0){
+                continue;
+            }else{
+                shadowFlag[j] = 0;
+                break;
+            }
+        }
+        for (int i = 1; i < faces->length + 1; i++){
+            // printf("entered faces loop\n");
+            Triangle *tri = tri_list_get(faces, i);
+
+            if(tri->face.dx == triangle->face.dx &&  tri->face.dy == triangle->face.dy  && tri->face.dz == triangle->face.dz){
+                continue;
+            }
+
+
+
+
+            
+            Vector normal;
+
+            int index1 = (int) tri->face.dx;
+            int index2 = (int) tri->face.dy;
+            int index3 = (int) tri->face.dz;
+
+            Vector *vertex1 = vec_list_get(vertices, index1);
+            Vector *vertex2 = vec_list_get(vertices, index2);
+            Vector *vertex3 = vec_list_get(vertices, index3);
+
+            Vector negVertex1 = scalarVecMult(-1, vertex1);
+
+            Vector vector1 = vectorAdd(vertex2, &negVertex1); 
+            Vector vector2 = vectorAdd(vertex3, &negVertex1); 
+        
+            normal = crossProduct(&vector1, &vector2);
+
+            // printf("normal calculation\n");
+            // printVector(&normal);
+
+            A = normal.dx;
+            B = normal.dy;
+            C = normal.dz;
+        
+            float D = -1 * (A * vertex1->dx + B * vertex1->dy + C * vertex1->dz);
+
+            float denominator = A * lightRay.dx + B * lightRay.dy + C * lightRay.dz;
+
+            if(denominator == 0){
+                continue;
+            }
+
+            float numerator = -1 * (A * lightRay.x + B * lightRay.y + C * lightRay.z + D);
+            float t = numerator/denominator;
+
+            Vector tempPoint;
+        
+            if(initialize_vector(&tempPoint, lightRay.x + t * lightRay.dx, lightRay.y + t * lightRay.dy,
+                                  lightRay.z + t * lightRay.dz) == -1){
+                 printf("surface point creation in trace lightRay.s not working");
+            }
+
+
+        
+            Vector e_p = vectorAdd(&tempPoint, &negVertex1);
+
+        
+            float d11 = dotProduct(&vector1, &vector1);
+            float d12 = dotProduct(&vector1, &vector2);
+            float d22 = dotProduct(&vector2, &vector2);
+            float d1p = dotProduct(&vector1, &e_p);
+            float d2p = dotProduct(&vector2, &e_p);
+
+            float det = (d11 * d22) - (d12 * d12);
+
+            float beta = (d22*d1p - d12*d2p)/det;
+            float gamma = (d11*d2p - d12*d1p)/det;
+            float alpha = 1 - beta - gamma;
+
+      
+            if(t <= 0){
+                continue;
+            }else if(alpha < 0 || beta < 0 || gamma < 0){
+                continue;
+            }else{
+                shadowFlag[j] = 0;
+                break;
+            }
+        
+        } 
+
+    }
+
     
 
 
     for(int i = 0; i<numberOfLights; i++){
-        printf("%d\n", numberOfLights);
-        
         H[i] = vectorAdd(&L[i], &V);
         H[i] = normalize(&H[i]);
 
-        printf("plane normal\n");
-        printVector(&planeNormal);
+        // printf("plane normal\n");
+        // printVector(&planeNormal);
         float nDotL = dotProduct(&planeNormal, &L[i]);
-        printf("nDotL: %f\n", nDotL);
+        // printf("nDotL: %f\n", nDotL);
         float nDotH = dotProduct(&planeNormal, &H[i]);
         if(acos(nDotL) > M_PI/2){
             initialize_vector(&diffuseTerm, 0.0, 0.0, 0.0);
@@ -606,17 +810,17 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
         }
         // printTriangle(triangle);
 
-        printVector(&diffuseTerm);
+        // printVector(&diffuseTerm);
         
         Vector specularTerm = scalarVecMult(triangle->ks * pow(fmax(0.0, nDotH),triangle->shinyFactor), &specularColor);
         Vector sum1 = vectorAdd(&specularTerm, &diffuseTerm);
-        sum1 = scalarVecMult(lightArray[i]->lightIntensity  * attenuationFactor[i], &sum1);
+        sum1 = scalarVecMult(lightArray[i]->lightIntensity * shadowFlag[i]  * attenuationFactor[i], &sum1);
         // printLight(lightArray[i]);
         sumOfLights = vectorAdd(&sumOfLights, &sum1);
     }
 
 
-    printVector(&sumOfLights);
+    // printVector(&sumOfLights);
 
     Vector sum2 = vectorAdd(&sumOfLights, &ambientTerm);
     initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);

@@ -44,7 +44,7 @@ int vec_list_add(vec_list *list, Vector *vec){
     Vector **new_data = realloc(list->data, 2 * list->capacity * sizeof(Vector *));
   
     if(new_data == NULL){
-      printf("entered here");
+      // printf("entered here");
       return -1;
     }else{
       list->data = new_data;

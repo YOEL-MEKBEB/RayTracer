@@ -74,10 +74,10 @@ int setWeight(SphereType *sphere, float ka, float kd, float ks){
 
 
 int setShinyFactor(SphereType *sphere, int shinyFactor){
-    if(isnan(shinyFactor)){
-        printf("shinyFactor is not one");
-        return -1;
-    }
+    // if(isnan(shinyFactor)){
+    //     printf("shinyFactor is not one");
+    //     return -1;
+    // }
     sphere->shinyFactor = shinyFactor;
     return 0;
 }
@@ -96,7 +96,7 @@ void printSphere(SphereType *sphere){
 }
 
 
-int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth){
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth, int useTexture){
     
     
     if(isnan(v1) || isnan(v2) || isnan(v3)){
@@ -111,6 +111,10 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
     triangle->normal.dx = 0;
     triangle->normal.dy = 0;
     triangle->normal.dz = 0;
+    
+    triangle->texture.dx = 0;
+    triangle->texture.dy = 0;
+    triangle->texture.dz = 0;
 
     triangle->Odr = 0.0;
     triangle->Odg = 0.0;
@@ -128,6 +132,7 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
     triangle->shinyFactor = 0;
 
     triangle->isSmoothShaded = isSmooth;
+    triangle->useTexture = useTexture;
     return 0;
     
 }
@@ -141,6 +146,18 @@ int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3){
     triangle->normal.dx = n1;
     triangle->normal.dy = n2;
     triangle->normal.dz = n3;
+
+    return 0;
+}
+int setTriangleTexture(Triangle *triangle, float t1, float t2, float t3){
+    if(isnan(t1) || isnan(t2) || isnan(t3)){
+        printf("Triangle normals are not a number\n");
+        return -1;
+    }
+    
+    triangle->texture.dx = t1;
+    triangle->texture.dy = t2;
+    triangle->texture.dz = t3;
 
     return 0;
 }
@@ -188,10 +205,10 @@ int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks){
 
 int setTriangleShinyFactor(Triangle *triangle, int shinyFactor){
     
-    if(isnan(shinyFactor)){
-        printf("Triangle shinyFactor is not one");
-        return -1;
-    }
+    // if(isnan(shinyFactor)){
+    //     printf("Triangle shinyFactor is not one");
+    //     return -1;
+    // }
     triangle->shinyFactor = shinyFactor;
     return 0;
 }
@@ -206,4 +223,7 @@ void printTriangle(Triangle *triangle){
     printf("triangle specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", triangle->Osr, triangle->Osg, triangle->Osb);
     printf("triangle weights: (ka, kd, ks) = (%f, %f, %f)\n", triangle->ka, triangle->kd, triangle->ks);
     printf("triangle shiny factor = %d\n", triangle->shinyFactor);
+    printf("triangle isSmoothShaded = %d\n", triangle->isSmoothShaded);
+    printf("triangle useTexture = %d\n", triangle->useTexture);
+
 }
