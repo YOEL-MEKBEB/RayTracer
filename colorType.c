@@ -16,7 +16,7 @@ void initializeColorType(ColorType *color, float r, float g, float b) {
 }
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list* normals) {
+                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list* normals, tex_list *textures) {
     
     // printf("%d\n", sizeOfArray);
     //
@@ -228,7 +228,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             // printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
+        color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
         
     }else if(faces->length <= 0){
             // printf("entered case 1\n");
@@ -236,7 +236,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
     } else if(t[minIndex] == -1 && t_faces[minFaceIndex] > -1){
         
             printf("entered case 2\n");
@@ -247,7 +247,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             printVector(&pointOfintersection);
-        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
+        color = shadeRay("triangle", NULL, tri_list_get(faces, minIndex + 1), ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
     }else if (t[minIndex] > -1 && t_faces[minFaceIndex] == -1){
         
             printf("entered case 3\n");
@@ -257,7 +257,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
         }
-        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
+        color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals, textures);
     } else{
             printf("entered case 4\n");
         if(t[minIndex] < t_faces[minFaceIndex]){
@@ -266,13 +266,13 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                               ray->z + t[minIndex] * ray->dz) == -1){
                 printf("surface point creation in trace ray is not working");
             }
-            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals);
+            color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, normals,textures);
         }
     }
     return color;
 }
 
-ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *normalCoord, vec_list* normals){
+ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,  Vector *surfacePoint,  Light** lightArray, int numberOfLights, SphereType** sphereArray, int sizeOfArray, Vector *normalCoord, vec_list* normals, tex_list* textures){
 
 
     ColorType color;
@@ -394,12 +394,53 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
     // printf("V: ");
     // printVector(&V);
     //
+    //
+    if(sphere->useTexture){
 
-    if(initialize_vector(&intrinsicColor, sphere->Odr, sphere->Odg, sphere->Odb) == -1){
-        printf("intrinsic color couldn't be created in shadeRay\n");
+        // parametrize sphere for use with texture map
+        float phi = acos((surfacePoint->dz - sphere->z)/sphere->radius);
+        float theta = atan2(surfacePoint->dy - sphere->y, surfacePoint->dx - sphere->x);
+
+
+
+        // ensures theta is from 0 to 2pi
+        if(theta < 0){
+            theta += (2 *M_PI);
+        }
+        
+        float v = phi/M_PI;
+        float u = theta/(2*M_PI);
+        
+        Texture *tex = tex_list_get(textures, sphere->useTexture);
+        int row = (int) (v * tex->height);
+        
+        vec_list *list = tex->data[row];
+
+        int column = (int) (u * list->length);
+        Vector *texColor = vec_list_get(list, column+1);
+        if(texColor == NULL){
+            printf("it's over\n");
             initializeColorType(&color, -1, -1, -1);
             return color;
+            
+        }
+
+        if(initialize_vector(&intrinsicColor, texColor->dx, texColor->dy, texColor->dz) == -1){
+            printf("intrinsic color couldn't be created in shadeRay\n");
+                initializeColorType(&color, -1, -1, -1);
+                return color;
+        }
+
+        
+    }else{
+        
+        if(initialize_vector(&intrinsicColor, sphere->Odr, sphere->Odg, sphere->Odb) == -1){
+            printf("intrinsic color couldn't be created in shadeRay\n");
+                initializeColorType(&color, -1, -1, -1);
+                return color;
+        }
     }
+
     if(initialize_vector(&specularColor, sphere->Osr, sphere->Osg, sphere->Osb) == -1){
         printf("specular Color couldn't be created in shadeRay\n");
             initializeColorType(&color, -1, -1, -1);

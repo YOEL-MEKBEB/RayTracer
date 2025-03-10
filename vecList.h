@@ -40,3 +40,26 @@ int tri_list_add(tri_list *list, Triangle *tri);
 
 Triangle *tri_list_get(tri_list *list, unsigned index);
 #endif
+
+#ifndef TEX_LIST_H
+#define TEX_LIST_H
+
+typedef struct{
+    vec_list **data;
+    int height;
+}Texture;
+
+
+typedef struct {
+    unsigned int length;
+    unsigned int capacity;
+    Texture **data;
+}tex_list;
+
+int tex_list_init(tex_list *list);
+void tex_list_clear(tex_list *list);
+int tex_list_add(tex_list *list, Texture *tex);
+Texture *tex_list_get(tex_list *list, unsigned index);
+
+
+#endif

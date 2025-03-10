@@ -1,2 +1,4 @@
 #include "vecList.h"
- int ppmRead(vec_list **image, char* fileName);
+
+float protectedStrToF(char *token);
+ int ppmRead(vec_list **image, FILE* file, int width, int height);

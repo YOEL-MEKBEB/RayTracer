@@ -3,7 +3,7 @@
 #include "stdio.h"
 #include "vector.h"
 #include <math.h>
-int initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m){
+int initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m, int useTexture){
 
     if(isnan(x) || isnan(y) || isnan(z) || isnan(radius)){
         printf("sphere coordinates are not a number\n");
@@ -29,6 +29,7 @@ int initializeSphere(SphereType* sphere, float x, float y, float z, float radius
     sphere->ks = 0.0;
 
     sphere->shinyFactor = 0;
+    sphere->useTexture = useTexture;
     return 0;
 
 }
@@ -89,7 +90,8 @@ void printSphere(SphereType *sphere){
     printf("sphere weights: (ka, kd, ks) = (%f, %f, %f)\n", sphere->ka, sphere->kd, sphere->ks);
     printf("Sphere shiny factor = %d\n", sphere->shinyFactor);
     printf("sphere radius:  = %f\n", sphere->radius);
-    printf("sphere tag:  = %d\n\n", sphere->m);
+    printf("sphere tag:  = %d\n", sphere->m);
+    printf("use texture: %d\n\n", sphere->useTexture);
 
 }
 

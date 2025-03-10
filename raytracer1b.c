@@ -13,6 +13,7 @@
 #include "string.h"
 #include "vector.h"
 #include "vecList.h"
+#include "ppmReader.h"
 
 /// @brief writes the header of the ppm file
 /// @param file
@@ -51,7 +52,7 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @param color
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
-               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals) {
+               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals, tex_list *textures) {
 
     printf("entered writeImage\n");
     int numWidth = atoi(width);
@@ -102,7 +103,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals);
+            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals, textures);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -140,23 +141,23 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
 /// @brief calls strtof and handles error where it returns 0 on text
 /// @param token
 /// @return returns the converted value on success or NAN on error
-float protectedStrToF(char *token) {
-    printf("%s\n", token);
-    float value = strtof(token, NULL);
+// float protectedStrToF(char *token) {
+//     printf("%s\n", token);
+//     float value = strtof(token, NULL);
 
-    if (value== 0.0){
-        // also accounts for the carriage return character "\r"
-        if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
-            return value;
-        }else{
-            printf("entered here\n");
-            int tok = (int) token[1];
-            printf("%d\n", tok);
-            return NAN;
-        }
-    }
-    return value;
-}
+//     if (value== 0.0){
+//         // also accounts for the carriage return character "\r"
+//         if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
+//             return value;
+//         }else{
+//             printf("entered here\n");
+//             int tok = (int) token[1];
+//             printf("%d\n", tok);
+//             return NAN;
+//         }
+//     }
+//     return value;
+// }
 
 
 int main() {
@@ -174,9 +175,13 @@ int main() {
 
     
     while (1) {
-    vec_list *vertices = malloc(sizeof(vec_list));
-    tri_list *faces = malloc(sizeof(tri_list));
-    vec_list *normals = malloc(sizeof(vec_list));
+        vec_list *vertices = malloc(sizeof(vec_list));
+        tri_list *faces = malloc(sizeof(tri_list));
+        vec_list *normals = malloc(sizeof(vec_list));
+        tex_list *textures = malloc(sizeof(tex_list));
+
+        tex_list_init(textures);
+    
         printf("input text file: ");
         scanf("%s", buf);
         if (strcmp(buf, "q") == 0) {
@@ -193,6 +198,7 @@ int main() {
 
 
         int isNormalAcquired = 0;
+        int useTexture = 0;
         char buf2[100];
         char *token;
         char width[5];
@@ -253,6 +259,8 @@ int main() {
         float vt1;
         float vt2;
         float vt3;
+
+
     
      while(fgets(buf2, 100, inputFile) != NULL){
           token = strtok(buf2, delimiter1);
@@ -315,7 +323,7 @@ int main() {
                     
                     SphereType *sphere = malloc(sizeof(SphereType));
                     //SphereType sphere;
-                    if(initializeSphere(sphere, X, Y, Z, r, m) == -1){
+                    if(initializeSphere(sphere, X, Y, Z, r, m, useTexture) == -1){
                         return 1;
                     }
                     if(setIntrinsicColor(sphere, Odr, Odg, Odb) == -1){
@@ -330,6 +338,7 @@ int main() {
                     if(setShinyFactor(sphere, n) == -1){
                         return 1;
                     }
+
                     printSphere(sphere);
                     sphereArray[m] = sphere;
                     m++;
@@ -447,6 +456,44 @@ int main() {
                 vec_list_add(normals, &vertex);
                 
                 
+            }else if(strcmp(token, "texture") == 0){
+                useTexture++;
+
+                Texture *image = malloc(sizeof(Texture));
+
+                char* fileName = strtok(NULL, delimiter2);
+
+                char texture[100] = "texture/";
+                char *filePath = strcat(texture, fileName);
+                printf("%s\n", filePath);                 
+
+                FILE *ppmFile = fopen(filePath, "r");
+                char ppmbuf[100];
+                fgets(ppmbuf, 1024, ppmFile);
+                
+                printf("in texture section\n");
+                char *last;
+                char *header = strtok_r(ppmbuf, delimiter1, &last);
+                if(strcmp(header,"P3") != 0){
+                    printf("not proper ppm file\n");
+                    continue;
+                }
+
+                int ppmWidth = atoi(strtok_r(last, delimiter1, &last));
+                int ppmHeight = atoi(strtok_r(last, delimiter1, &last));
+
+                image->data = malloc(ppmHeight* sizeof(vec_list*));
+                image->height = ppmHeight;
+                if(ppmRead(image->data, ppmFile, ppmWidth, ppmHeight) == -1){
+                    printf("failed to read ppm\n");
+                    return -1;
+                }
+
+                fclose(ppmFile);
+
+                tex_list_add(textures, image);
+                
+                
             }
         }
 
@@ -530,7 +577,7 @@ int main() {
             free(backgroundColor);
             return 1;
         }
-        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals) ==
+        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals, textures) ==
             -1) {
             fclose(ppmFile);
             fclose(inputFile);
@@ -549,10 +596,25 @@ int main() {
         for(int i = 0; i < lengthOfLight; i++){
             free(lightArray[i]);
         }
+        for(int i = 1; i < textures->length + 1; i++){
+            
+            printf("texture%d \n", i);
+            Texture *temp = tex_list_get(textures, i);
+            for(int j = 0; j<temp->height; j++){
+                vec_list *list = temp->data[j];
 
-    vec_list_clear(vertices);
-    tri_list_clear(faces);
-    vec_list_clear(normals);
+                // for(int k = 1; k<list->length; k++){
+                //     printVector(vec_list_get(list, k));
+                // }
+                vec_list_clear(list);
+            }
+        }
+
+        vec_list_clear(vertices);
+        tri_list_clear(faces);
+        vec_list_clear(normals);
+        tex_list_clear(textures);
+    
     }
 
     free(camera);

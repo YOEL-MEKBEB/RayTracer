@@ -24,27 +24,8 @@ float protectedStrToF(char *token) {
 
 int read(vec_list **image, FILE* file, int width, int height){
     
-    // FILE *file = fopen(fileName, "r");
-    // char buf[1024];
-
-
-
-    // fgets(buf, 1024, file);
     char *token;
-
-    
-    // if(strcmp(token, "P3") != 0){
-    //     printf("not proper ppm file\n");
-    //     return -1;
-    // }
-
-    // int width = atoi(strtok(NULL, " "));
-    // int height = atoi(strtok(NULL, " "));
-
-
-
-    // image = malloc(height * sizeof(vec_list*));
-    
+    char *memorizer;
     printf("%d %d\n", width, height);
 
     int MAXSIZE = width * height;
@@ -64,22 +45,26 @@ int read(vec_list **image, FILE* file, int width, int height){
         printf("%s", buf2);
 
 
-        token = strtok(buf2, delimeter);
+        token = strtok_r(buf2, delimeter, &memorizer);
 
         printf("%s\n", token);
         vec_list *list = malloc(sizeof(vec_list));
         vec_list_init(list);
-        while(token != NULL){
+        while(token != NULL && strcmp(token, "\r") != 0){
+            // printf("hello\n");
+            printf("%s\n", token);
             // printf("this is the capacity: %d\n", list->capacity);
             
             x = protectedStrToF(token);
-            y = protectedStrToF(strtok(NULL, delimeter));
-            z = protectedStrToF(strtok(NULL, delimeter));
+            y = protectedStrToF(strtok_r(NULL, delimeter, &memorizer));
+            z = protectedStrToF(strtok_r(NULL, delimeter, &memorizer));
             Vector vec;
             initialize_vector(&vec, x, y, z);
             vec_list_add(list, &vec);
-            token = strtok(NULL, delimeter);
+            token = strtok_r(NULL, delimeter, &memorizer);
+            printf("%d\n", list->length);
         }
+        printf("is it here\n");
         image[i] = list;
                 
     }
@@ -87,6 +72,7 @@ int read(vec_list **image, FILE* file, int width, int height){
    
   
   return 0;
+  
 }
 
 
@@ -96,8 +82,8 @@ int main() {
     // Camera *camera = malloc(sizeof(Camera));
     // ColorType *backgroundColor = malloc(sizeof(ColorType));
 
-    char filename[] = "texture/cat.ppm";
-    vec_list **image;
+    char filename[] = "texture/earthtexture.ppm";
+    Texture *image = malloc(sizeof(Texture));
     
     FILE *file = fopen(filename, "r");
     char buf[1024];
@@ -116,23 +102,23 @@ int main() {
     int width = atoi(strtok(NULL, " "));
     int height = atoi(strtok(NULL, " "));
 
-    image = malloc(height * sizeof(vec_list*));
+    image->data = malloc(height * sizeof(vec_list*));
     
     printf("%d %d\n", width, height);
 
-    read(image, file, width, height);
+    read(image->data, file, width, height);
     // printf("it's here\n");
     // printf("%d\n", height);
 
     for(int i = 0; i < height; i++){
-        vec_list *list = image[i];
+        vec_list *list = image->data[i];
 
         
         for(int j = 1; j< list->length+1; j++){
             // printf("entered double loop\n");
             printVector(vec_list_get(list, j));
         }
-        printf("%d\n", i);
+        // printf("%d\n", i);
         vec_list_clear(list);
     }
 
