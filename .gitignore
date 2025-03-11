@@ -1,3 +1,13 @@
 *.ppm
+!earthtexture.ppm
+!bump.ppm
+!grass.ppm
+!normalmap.ppm
+!redwood.ppm
+!soccerball.ppm
+!umn.ppm
+!wood.ppm
+!*/
+
 *.o
 *.pdf
