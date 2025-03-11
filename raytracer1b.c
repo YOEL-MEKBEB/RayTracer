@@ -161,6 +161,10 @@ int main() {
         tex_list *textures = malloc(sizeof(tex_list));
 
         tex_list_init(textures);
+        tri_list_init(faces);
+        vec_list_init(vertices);
+        vec_list_init(normals);
+        vec_list_init(textureCoord);
 
         printf("input text file: ");
         scanf("%s", buf);
