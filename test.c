@@ -28,7 +28,7 @@ int read(vec_list **image, FILE* file, int width, int height){
     char *memorizer;
     printf("%d %d\n", width, height);
 
-    int MAXSIZE = width * height;
+    int MAXSIZE = width * 2;
     char buf2[MAXSIZE];
     
 
@@ -36,7 +36,6 @@ int read(vec_list **image, FILE* file, int width, int height){
     float x;
     float y;
     float z;
-    
     for(int i = 0; i < height; i++){
         
         
@@ -50,6 +49,8 @@ int read(vec_list **image, FILE* file, int width, int height){
         printf("%s\n", token);
         vec_list *list = malloc(sizeof(vec_list));
         vec_list_init(list);
+
+        int k = 0;
         while(token != NULL && strcmp(token, "\r") != 0){
             // printf("hello\n");
             printf("%s\n", token);
@@ -63,8 +64,10 @@ int read(vec_list **image, FILE* file, int width, int height){
             vec_list_add(list, &vec);
             token = strtok_r(NULL, delimeter, &memorizer);
             printf("%d\n", list->length);
+            k++;
         }
         printf("is it here\n");
+        printf("%d\n", k);
         image[i] = list;
                 
     }
@@ -75,6 +78,40 @@ int read(vec_list **image, FILE* file, int width, int height){
   
 }
 
+int write(vec_list **image, FILE* file, int width, int height){
+
+
+    char *p3 = "P3\n";
+    if (fwrite(p3, strlen(p3), 1, file) < 1) {
+        perror("failed to write header\n");
+        return -1;
+    }
+
+    char cwidth[5];
+    char cheight[5];
+
+    sprintf(cwidth, "%d",width);
+    sprintf(cheight, "%d", height);
+    // concatenates all the strings together to make the header for the ppm file
+    char widthAndHeight[30] = "";
+    char *resultString = strcat(widthAndHeight, cwidth);
+    resultString = strcat(widthAndHeight, " ");
+    resultString = strcat(widthAndHeight, cheight);
+    resultString = strcat(widthAndHeight, "\n");
+    resultString = strcat(widthAndHeight, "255");
+    resultString = strcat(widthAndHeight, "\n");
+
+    // writes the entire string to the file provided to the function
+    if (fwrite(resultString, strlen(resultString), 1, file) < 1) {
+        perror("failed to write header\n");
+        return -1;
+    }
+
+return 0;
+
+    
+}
+
 
 
 
@@ -82,7 +119,7 @@ int main() {
     // Camera *camera = malloc(sizeof(Camera));
     // ColorType *backgroundColor = malloc(sizeof(ColorType));
 
-    char filename[] = "texture/earthtexture.ppm";
+    char filename[] = "texture/radha.ppm";
     Texture *image = malloc(sizeof(Texture));
     
     FILE *file = fopen(filename, "r");
@@ -106,18 +143,24 @@ int main() {
     
     printf("%d %d\n", width, height);
 
+
     read(image->data, file, width, height);
+    fclose(file);
     // printf("it's here\n");
     // printf("%d\n", height);
+
+
+    FILE *outputFile = fopen("outpus.ppm", "w");
+    write(image->data,outputFile, width, height);
 
     for(int i = 0; i < height; i++){
         vec_list *list = image->data[i];
 
         
-        for(int j = 1; j< list->length+1; j++){
-            // printf("entered double loop\n");
-            printVector(vec_list_get(list, j));
-        }
+        // for(int j = 1; j< list->length+1; j++){
+        //     // printf("entered double loop\n");
+        //     // printVe cctor(vec_list_get(list, j));
+        // }
         // printf("%d\n", i);
         vec_list_clear(list);
     }

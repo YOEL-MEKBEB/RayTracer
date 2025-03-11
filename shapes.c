@@ -1,11 +1,12 @@
 #include "shapes.h"
 
+#include <math.h>
+
 #include "stdio.h"
 #include "vector.h"
-#include <math.h>
-int initializeSphere(SphereType* sphere, float x, float y, float z, float radius, int m, int useTexture){
-
-    if(isnan(x) || isnan(y) || isnan(z) || isnan(radius)){
+int initializeSphere(SphereType *sphere, float x, float y, float z, float radius, int m,
+                     int useTexture) {
+    if (isnan(x) || isnan(y) || isnan(z) || isnan(radius)) {
         printf("sphere coordinates are not a number\n");
         return -1;
     }
@@ -19,11 +20,10 @@ int initializeSphere(SphereType* sphere, float x, float y, float z, float radius
     sphere->Odg = 0.0;
     sphere->Odb = 0.0;
 
-    
     sphere->Osr = 0.0;
     sphere->Osg = 0.0;
     sphere->Osb = 0.0;
-    
+
     sphere->ka = 0.0;
     sphere->kd = 0.0;
     sphere->ks = 0.0;
@@ -31,25 +31,22 @@ int initializeSphere(SphereType* sphere, float x, float y, float z, float radius
     sphere->shinyFactor = 0;
     sphere->useTexture = useTexture;
     return 0;
-
 }
 
-int setIntrinsicColor(SphereType* sphere, float r, float g, float b){
-
-    if(isnan(r) || isnan(g) || isnan(b)){
+int setIntrinsicColor(SphereType *sphere, float r, float g, float b) {
+    if (isnan(r) || isnan(g) || isnan(b)) {
         printf("colors are not a number\n");
         return -1;
     }
-    
+
     sphere->Odr = r;
     sphere->Odg = g;
     sphere->Odb = b;
     return 0;
 }
 
-int setSpecularColor(SphereType *sphere, float r, float g, float b){
-    
-    if(isnan(r) || isnan(g) || isnan(b)){
+int setSpecularColor(SphereType *sphere, float r, float g, float b) {
+    if (isnan(r) || isnan(g) || isnan(b)) {
         printf("colors are not a number\n");
         return -1;
     }
@@ -59,9 +56,8 @@ int setSpecularColor(SphereType *sphere, float r, float g, float b){
     return 0;
 }
 
-int setWeight(SphereType *sphere, float ka, float kd, float ks){
-    
-    if(isnan(ka) || isnan(kd) || isnan(ks)){
+int setWeight(SphereType *sphere, float ka, float kd, float ks) {
+    if (isnan(ka) || isnan(kd) || isnan(ks)) {
         printf("weights are not a number\n");
         return -1;
     }
@@ -72,34 +68,27 @@ int setWeight(SphereType *sphere, float ka, float kd, float ks){
     return 0;
 }
 
-
-int setShinyFactor(SphereType *sphere, int shinyFactor){
-    // if(isnan(shinyFactor)){
-    //     printf("shinyFactor is not one");
-    //     return -1;
-    // }
+int setShinyFactor(SphereType *sphere, int shinyFactor) {
     sphere->shinyFactor = shinyFactor;
     return 0;
 }
 
-
-void printSphere(SphereType *sphere){
+void printSphere(SphereType *sphere) {
     printf("sphere position: (x, y, z) = (%f, %f, %f)\n", sphere->x, sphere->y, sphere->z);
-    printf("sphere Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", sphere->Odr, sphere->Odg, sphere->Odb);
-    printf("sphere specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", sphere->Osr, sphere->Osg, sphere->Osb);
+    printf("sphere Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", sphere->Odr, sphere->Odg,
+           sphere->Odb);
+    printf("sphere specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", sphere->Osr, sphere->Osg,
+           sphere->Osb);
     printf("sphere weights: (ka, kd, ks) = (%f, %f, %f)\n", sphere->ka, sphere->kd, sphere->ks);
     printf("Sphere shiny factor = %d\n", sphere->shinyFactor);
     printf("sphere radius:  = %f\n", sphere->radius);
     printf("sphere tag:  = %d\n", sphere->m);
     printf("use texture: %d\n\n", sphere->useTexture);
-
 }
 
-
-int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth, int useTexture){
-    
-    
-    if(isnan(v1) || isnan(v2) || isnan(v3)){
+int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth,
+                       int useTexture) {
+    if (isnan(v1) || isnan(v2) || isnan(v3)) {
         printf("triangle coordinates are not a number\n");
         return -1;
     }
@@ -107,11 +96,10 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
     triangle->face.dy = v2;
     triangle->face.dz = v3;
 
-
     triangle->normal.dx = 0;
     triangle->normal.dy = 0;
     triangle->normal.dz = 0;
-    
+
     triangle->texture.dx = 0;
     triangle->texture.dy = 0;
     triangle->texture.dz = 0;
@@ -120,11 +108,10 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
     triangle->Odg = 0.0;
     triangle->Odb = 0.0;
 
-    
     triangle->Osr = 0.0;
     triangle->Osg = 0.0;
     triangle->Osb = 0.0;
-    
+
     triangle->ka = 0.0;
     triangle->kd = 0.0;
     triangle->ks = 0.0;
@@ -134,27 +121,26 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
     triangle->isSmoothShaded = isSmooth;
     triangle->useTexture = useTexture;
     return 0;
-    
 }
 
-int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3){
-    if(isnan(n1) || isnan(n2) || isnan(n3)){
+int setTriangleNormal(Triangle *triangle, float n1, float n2, float n3) {
+    if (isnan(n1) || isnan(n2) || isnan(n3)) {
         printf("Triangle normals are not a number\n");
         return -1;
     }
-    
+
     triangle->normal.dx = n1;
     triangle->normal.dy = n2;
     triangle->normal.dz = n3;
 
     return 0;
 }
-int setTriangleTexture(Triangle *triangle, float t1, float t2, float t3){
-    if(isnan(t1) || isnan(t2) || isnan(t3)){
+int setTriangleTexture(Triangle *triangle, float t1, float t2, float t3) {
+    if (isnan(t1) || isnan(t2) || isnan(t3)) {
         printf("Triangle normals are not a number\n");
         return -1;
     }
-    
+
     triangle->texture.dx = t1;
     triangle->texture.dy = t2;
     triangle->texture.dz = t3;
@@ -162,36 +148,32 @@ int setTriangleTexture(Triangle *triangle, float t1, float t2, float t3){
     return 0;
 }
 
-
-int setIntrinsicTriangle(Triangle *triangle, float r, float g, float b){
-    
-    if(isnan(r) || isnan(g) || isnan(b)){
+int setIntrinsicTriangle(Triangle *triangle, float r, float g, float b) {
+    if (isnan(r) || isnan(g) || isnan(b)) {
         printf("Triangle colors are not a number\n");
         return -1;
     }
-    
+
     triangle->Odr = r;
     triangle->Odg = g;
     triangle->Odb = b;
     return 0;
 }
 
-int setSpecularTriangle(Triangle *triangle, float r, float g, float b){
-    
-    if(isnan(r) || isnan(g) || isnan(b)){
+int setSpecularTriangle(Triangle *triangle, float r, float g, float b) {
+    if (isnan(r) || isnan(g) || isnan(b)) {
         printf("Triangle specular colors are not a number\n");
         return -1;
     }
-    
+
     triangle->Osr = r;
     triangle->Osg = g;
     triangle->Osb = b;
     return 0;
 }
 
-int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks){
-    
-    if(isnan(ka) || isnan(kd) || isnan(ks)){
+int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks) {
+    if (isnan(ka) || isnan(kd) || isnan(ks)) {
         printf("Triangle weights are not a number\n");
         return -1;
     }
@@ -202,28 +184,23 @@ int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks){
     return 0;
 }
 
-
-int setTriangleShinyFactor(Triangle *triangle, int shinyFactor){
-    
-    // if(isnan(shinyFactor)){
-    //     printf("Triangle shinyFactor is not one");
-    //     return -1;
-    // }
+int setTriangleShinyFactor(Triangle *triangle, int shinyFactor) {
     triangle->shinyFactor = shinyFactor;
     return 0;
 }
 
-
-void printTriangle(Triangle *triangle){
-    
-    printf("triangle vertices: (x, y, z) = (%f, %f, %f)\n", triangle->face.dx, triangle->face.dy, triangle->face.dz);
+void printTriangle(Triangle *triangle) {
+    printf("triangle vertices: (x, y, z) = (%f, %f, %f)\n", triangle->face.dx, triangle->face.dy,
+           triangle->face.dz);
     printf("triangle normal: ");
     printVector(&triangle->normal);
-    printf("triangle Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", triangle->Odr, triangle->Odg, triangle->Odb);
-    printf("triangle specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", triangle->Osr, triangle->Osg, triangle->Osb);
-    printf("triangle weights: (ka, kd, ks) = (%f, %f, %f)\n", triangle->ka, triangle->kd, triangle->ks);
+    printf("triangle Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", triangle->Odr,
+           triangle->Odg, triangle->Odb);
+    printf("triangle specular color: (Osr, Osg, Osb) = (%f, %f, %f)\n", triangle->Osr,
+           triangle->Osg, triangle->Osb);
+    printf("triangle weights: (ka, kd, ks) = (%f, %f, %f)\n", triangle->ka, triangle->kd,
+           triangle->ks);
     printf("triangle shiny factor = %d\n", triangle->shinyFactor);
     printf("triangle isSmoothShaded = %d\n", triangle->isSmoothShaded);
     printf("triangle useTexture = %d\n", triangle->useTexture);
-
 }

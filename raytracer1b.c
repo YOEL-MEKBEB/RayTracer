@@ -7,13 +7,13 @@
 #include "camera.h"
 #include "colorType.h"
 #include "light.h"
+#include "ppmReader.h"
 #include "ray.h"
 #include "shapes.h"
 #include "stdlib.h"
 #include "string.h"
-#include "vector.h"
 #include "vecList.h"
-#include "ppmReader.h"
+#include "vector.h"
 
 /// @brief writes the header of the ppm file
 /// @param file
@@ -52,8 +52,8 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @param color
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
-               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces, vec_list *normals, tex_list *textures, vec_list* texCoord) {
-
+               SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces,
+               vec_list *normals, tex_list *textures, vec_list *texCoord) {
     printf("entered writeImage\n");
     int numWidth = atoi(width);
 
@@ -103,7 +103,9 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
 
-            ColorType intersectColor = traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light, camera->numberOfLights, vertices, faces, normals, textures, texCoord);
+            ColorType intersectColor =
+                traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light,
+                         camera->numberOfLights, vertices, faces, normals, textures, texCoord);
 
             if (intersectColor.r < 0) {
                 printf("issue is here\n");
@@ -138,28 +140,6 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
     return 0;
 }
 
-/// @brief calls strtof and handles error where it returns 0 on text
-/// @param token
-/// @return returns the converted value on success or NAN on error
-// float protectedStrToF(char *token) {
-//     printf("%s\n", token);
-//     float value = strtof(token, NULL);
-
-//     if (value== 0.0){
-//         // also accounts for the carriage return character "\r"
-//         if(strcmp("0", token) == 0 || strcmp("0.0", token) == 0 || strcmp("0\r", token) == 0) {
-//             return value;
-//         }else{
-//             printf("entered here\n");
-//             int tok = (int) token[1];
-//             printf("%d\n", tok);
-//             return NAN;
-//         }
-//     }
-//     return value;
-// }
-
-
 int main() {
     Camera *camera = malloc(sizeof(Camera));
     ColorType *backgroundColor = malloc(sizeof(ColorType));
@@ -169,11 +149,10 @@ int main() {
     char *delimiter2 = "\n";
     char *delimiter3 = "/";
     int m = 0;    // shape tag;
-    SphereType *sphereArray[10]; 
-    Light* lightArray[10];
+    SphereType *sphereArray[10];
+    Light *lightArray[10];
     int lightIndex = 0;
 
-    
     while (1) {
         vec_list *vertices = malloc(sizeof(vec_list));
         tri_list *faces = malloc(sizeof(tri_list));
@@ -182,7 +161,7 @@ int main() {
         tex_list *textures = malloc(sizeof(tex_list));
 
         tex_list_init(textures);
-    
+
         printf("input text file: ");
         scanf("%s", buf);
         if (strcmp(buf, "q") == 0) {
@@ -197,11 +176,10 @@ int main() {
             return 1;
         }
 
-
         int isNormalAcquired = 0;
         int useTexture = 0;
         int isTexCoord = 0;
-        
+
         char buf2[100];
         char *token;
         char width[5];
@@ -228,11 +206,11 @@ int main() {
         float Odr;
         float Odg;
         float Odb;
-        
+
         float Osr;
         float Osg;
         float Osb;
-        
+
         float ka;
         float kd;
         float ks;
@@ -253,7 +231,6 @@ int main() {
         float vectorY;
         float vectorZ;
 
-
         // initialized to 0 for flat triangle
         float normal1 = 0;
         float normal2 = 0;
@@ -266,221 +243,229 @@ int main() {
         float u;
         float v;
 
-    
-     while(fgets(buf2, 100, inputFile) != NULL){
-          token = strtok(buf2, delimiter1);
+        while (fgets(buf2, 100, inputFile) != NULL) {
+            token = strtok(buf2, delimiter1);
 
-          // printf("%s\n", token);
+            // printf("%s\n", token);
 
-          if(strcmp(token, "imsize") == 0){
+            if (strcmp(token, "imsize") == 0) {
+                printf("entered\n");
 
-              printf("entered\n");
+                strcpy(width, strtok(NULL, delimiter1));
+                strcpy(height, strtok(NULL, delimiter2));
 
-              strcpy(width, strtok(NULL, delimiter1));
-              strcpy(height, strtok(NULL, delimiter2));
-          
-          } else if (strcmp(token, "eye") == 0) {
-            eyeX = protectedStrToF(strtok(NULL, delimiter1));
-            eyeY = protectedStrToF(strtok(NULL, delimiter1));
-            eyeZ = protectedStrToF(strtok(NULL, delimiter2));
-            printf("eyeZ: %f\n", eyeZ);
-          }else if (strcmp(token, "viewdir") == 0) {
+            } else if (strcmp(token, "eye") == 0) {
+                eyeX = protectedStrToF(strtok(NULL, delimiter1));
+                eyeY = protectedStrToF(strtok(NULL, delimiter1));
+                eyeZ = protectedStrToF(strtok(NULL, delimiter2));
+                printf("eyeZ: %f\n", eyeZ);
+            } else if (strcmp(token, "viewdir") == 0) {
                 viewDirX = protectedStrToF(strtok(NULL, delimiter1));
                 viewDirY = protectedStrToF(strtok(NULL, delimiter1));
                 viewDirZ = protectedStrToF(strtok(NULL, delimiter2));
-          } else if (strcmp(token, "vfov") == 0) {
+            } else if (strcmp(token, "vfov") == 0) {
                 vfov = protectedStrToF(strtok(NULL, delimiter2));
-          } else if (strcmp(token, "updir") == 0) {
+            } else if (strcmp(token, "updir") == 0) {
                 updirX = protectedStrToF(strtok(NULL, delimiter1));
                 updirY = protectedStrToF(strtok(NULL, delimiter1));
                 updirZ = protectedStrToF(strtok(NULL, delimiter2));
                 printf("%f\n", updirZ);
-          } else if (strcmp(token, "bkgcolor") == 0) {
+            } else if (strcmp(token, "bkgcolor") == 0) {
                 bcX = protectedStrToF(strtok(NULL, delimiter1));
                 bcY = protectedStrToF(strtok(NULL, delimiter1));
                 bcZ = protectedStrToF(strtok(NULL, delimiter2));
-          
-          } else if ((strcmp(token, "mtlcolor") == 0)) {
+
+            } else if ((strcmp(token, "mtlcolor") == 0)) {
                 Odr = protectedStrToF(strtok(NULL, delimiter1));
                 Odg = protectedStrToF(strtok(NULL, delimiter1));
                 Odb = protectedStrToF(strtok(NULL, delimiter1));
                 printf("mtlColor: (%f, %f, %f)\n", Odr, Odg, Odb);
-                
+
                 Osr = protectedStrToF(strtok(NULL, delimiter1));
                 Osg = protectedStrToF(strtok(NULL, delimiter1));
                 Osb = protectedStrToF(strtok(NULL, delimiter1));
-                
+
                 printf("specularColor: (%f, %f, %f)\n", Osr, Osg, Osb);
-                
+
                 ka = protectedStrToF(strtok(NULL, delimiter1));
                 kd = protectedStrToF(strtok(NULL, delimiter1));
                 ks = protectedStrToF(strtok(NULL, delimiter1));
-                
+
                 printf("weights: (%f, %f, %f)\n", ka, kd, ks);
                 n = atoi(strtok(NULL, delimiter2));
 
-          }else if ((strcmp(token, "sphere") == 0)) {
-                    X = protectedStrToF(strtok(NULL, delimiter1));
-                    Y = protectedStrToF(strtok(NULL, delimiter1));
-                    Z = protectedStrToF(strtok(NULL, delimiter1));
-                    r = protectedStrToF(strtok(NULL, delimiter2));
-                    // printf("in Sphere: %f\n", r);
-                    
-                    SphereType *sphere = malloc(sizeof(SphereType));
-                    //SphereType sphere;
-                    if(initializeSphere(sphere, X, Y, Z, r, m, useTexture) == -1){
-                        return 1;
-                    }
-                    if(setIntrinsicColor(sphere, Odr, Odg, Odb) == -1){
-                        return 1;
-                    }
-                    if(setSpecularColor(sphere, Osr, Osg, Osb) == -1){
-                        return 1;
-                    }
-                    if(setWeight(sphere, ka, kd, ks) == -1){
-                        return 1;
-                    }
-                    if(setShinyFactor(sphere, n) == -1){
-                        return 1;
-                    }
+            } else if ((strcmp(token, "sphere") == 0)) {
+                X = protectedStrToF(strtok(NULL, delimiter1));
+                Y = protectedStrToF(strtok(NULL, delimiter1));
+                Z = protectedStrToF(strtok(NULL, delimiter1));
+                r = protectedStrToF(strtok(NULL, delimiter2));
+                // printf("in Sphere: %f\n", r);
 
-                    printSphere(sphere);
-                    sphereArray[m] = sphere;
-                    m++;
-                    printf("%d\n", m);
+                SphereType *sphere = malloc(sizeof(SphereType));
+                // SphereType sphere;
+                if (initializeSphere(sphere, X, Y, Z, r, m, useTexture) == -1) {
+                    return 1;
+                }
+                if (setIntrinsicColor(sphere, Odr, Odg, Odb) == -1) {
+                    return 1;
+                }
+                if (setSpecularColor(sphere, Osr, Osg, Osb) == -1) {
+                    return 1;
+                }
+                if (setWeight(sphere, ka, kd, ks) == -1) {
+                    return 1;
+                }
+                if (setShinyFactor(sphere, n) == -1) {
+                    return 1;
+                }
 
-          }  else if(strcmp(token, "light")==0){
-                    lightX = protectedStrToF(strtok(NULL, delimiter1));
-                    lightY = protectedStrToF(strtok(NULL, delimiter1));
-                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                    isPointLight = atoi(strtok(NULL, delimiter1));
-                    lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
-                    c1 = 0.0;
-                    c2 = 0.0;
-                    c3 = 0.0;
-                    printf("setting non attenuated light\n");
-                    Light *light = malloc(sizeof(Light));
-                    setLightParameters(light, lightX, lightY, lightZ, isPointLight, lightIntensity);
-                    lightArray[lightIndex] = light;
-                    lightIndex++;
-          }else if(strcmp(token, "attlight")==0){
-                    lightX = protectedStrToF(strtok(NULL, delimiter1));
-                    lightY = protectedStrToF(strtok(NULL, delimiter1));
-                    lightZ = protectedStrToF(strtok(NULL, delimiter1));
-                    isPointLight = atoi(strtok(NULL, delimiter1));
-                    lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
-                    c1 = protectedStrToF(strtok(NULL, delimiter1));
-                    c2 = protectedStrToF(strtok(NULL, delimiter1));
-                    c3 = protectedStrToF(strtok(NULL, delimiter2));
-                    printf("setting Attenuated light\n");
-                    Light *light = malloc(sizeof(Light));
-                    setAttLightParameters(light, lightX, lightY, lightZ,isPointLight,lightIntensity, c1, c2, c3);
-                    lightArray[lightIndex] = light;
-                    printLight(light);
-                    printLight(lightArray[lightIndex]);
-                    lightIndex++;
-          }else if(strcmp(token, "v") == 0){
-            
+                printSphere(sphere);
+                sphereArray[m] = sphere;
+                m++;
+                printf("%d\n", m);
+
+            } else if (strcmp(token, "light") == 0) {
+                lightX = protectedStrToF(strtok(NULL, delimiter1));
+                lightY = protectedStrToF(strtok(NULL, delimiter1));
+                lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                isPointLight = atoi(strtok(NULL, delimiter1));
+                lightIntensity = protectedStrToF(strtok(NULL, delimiter2));
+                c1 = 0.0;
+                c2 = 0.0;
+                c3 = 0.0;
+                printf("setting non attenuated light\n");
+                Light *light = malloc(sizeof(Light));
+                if (setLightParameters(light, lightX, lightY, lightZ, isPointLight,
+                                       lightIntensity) == -1) {
+                    return 1;
+                }
+                lightArray[lightIndex] = light;
+                lightIndex++;
+            } else if (strcmp(token, "attlight") == 0) {
+                lightX = protectedStrToF(strtok(NULL, delimiter1));
+                lightY = protectedStrToF(strtok(NULL, delimiter1));
+                lightZ = protectedStrToF(strtok(NULL, delimiter1));
+                isPointLight = atoi(strtok(NULL, delimiter1));
+                lightIntensity = protectedStrToF(strtok(NULL, delimiter1));
+                c1 = protectedStrToF(strtok(NULL, delimiter1));
+                c2 = protectedStrToF(strtok(NULL, delimiter1));
+                c3 = protectedStrToF(strtok(NULL, delimiter2));
+                printf("setting Attenuated light\n");
+                Light *light = malloc(sizeof(Light));
+                if (setAttLightParameters(light, lightX, lightY, lightZ, isPointLight,
+                                          lightIntensity, c1, c2, c3) == -1) {
+                    return 1;
+                }
+                lightArray[lightIndex] = light;
+                printLight(lightArray[lightIndex]);
+                lightIndex++;
+            } else if (strcmp(token, "v") == 0) {
+                vectorX = protectedStrToF(strtok(NULL, delimiter1));
+                vectorY = protectedStrToF(strtok(NULL, delimiter1));
+                vectorZ = protectedStrToF(strtok(NULL, delimiter2));
+
+                Vector vertex;
+                if (initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1) {
+                    printf("the vertex coordinates are not a number\n");
+                    return 1;
+                }
+
+                if (vec_list_add(vertices, &vertex) == -1) {
+                    printf("failed to add vertices to list\n");
+                    return 1;
+                }
+
+            } else if (strcmp(token, "f") == 0) {
+                if (!isNormalAcquired && !useTexture) {
                     vectorX = protectedStrToF(strtok(NULL, delimiter1));
                     vectorY = protectedStrToF(strtok(NULL, delimiter1));
                     vectorZ = protectedStrToF(strtok(NULL, delimiter2));
-
-                    Vector vertex;
-                    if(initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1){
-                        printf("the vertex coordinates are not a number\n");
-                        return 1;
-                    }
-
-                    vec_list_add(vertices, &vertex);
-              
-          }else if (strcmp(token, "f") == 0){
-                
-                    printf("in face section\n");
-                    printf("%d\n", isNormalAcquired);
-                    printf("%d\n", useTexture);
-              // create a bettter parsing system
-                  if(!isNormalAcquired && !useTexture){
-                    printf("if 1\n");  
-                    vectorX = protectedStrToF(strtok(NULL, delimiter1));
-                    vectorY = protectedStrToF(strtok(NULL, delimiter1));
-                    vectorZ = protectedStrToF(strtok(NULL, delimiter2));
-                  }else if(isNormalAcquired && !useTexture){
-
-                    printf("if 2\n");  
+                } else if (isNormalAcquired && !useTexture) {
                     vectorX = protectedStrToF(strtok(NULL, delimiter3));
-                    // vt1 = protectedStrToF(strtok(NULL, delimiter3));
+
                     char *temp = strtok(NULL, delimiter1);
                     temp = &temp[1];
-                    
+
                     normal1 = protectedStrToF(temp);
-                    
+
                     vectorY = protectedStrToF(strtok(NULL, delimiter3));
 
-                    
                     temp = strtok(NULL, delimiter1);
                     temp = &temp[1];
-                    // vt2 = protectedStrToF(strtok(NULL, delimiter3));
+
                     normal2 = protectedStrToF(temp);
-                    
+
                     vectorZ = protectedStrToF(strtok(NULL, delimiter3));
                     temp = strtok(NULL, delimiter2);
                     temp = &temp[1];
-                    // vt3 = protectedStrToF(strtok(NULL, delimiter3));
+
                     normal3 = protectedStrToF(temp);
-                      
-                  }else if(!isNormalAcquired && useTexture){
+
+                } else if (!isNormalAcquired && useTexture) {
                     printf("if 3\n");
-                        vectorX = protectedStrToF(strtok(NULL, delimiter3));
-                        vt1 = protectedStrToF(strtok(NULL, delimiter1));
-                        vectorY = protectedStrToF(strtok(NULL, delimiter3));
-                        vt2 = protectedStrToF(strtok(NULL, delimiter1));
-                        vectorZ = protectedStrToF(strtok(NULL, delimiter3));
-                        vt3 = protectedStrToF(strtok(NULL, delimiter2));
-                  }else if(isNormalAcquired && useTexture){
+                    vectorX = protectedStrToF(strtok(NULL, delimiter3));
+                    vt1 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorY = protectedStrToF(strtok(NULL, delimiter3));
+                    vt2 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorZ = protectedStrToF(strtok(NULL, delimiter3));
+                    vt3 = protectedStrToF(strtok(NULL, delimiter2));
+                } else if (isNormalAcquired && useTexture) {
+                    printf("in the else statement\n");
+                    vectorX = protectedStrToF(strtok(NULL, delimiter3));
+                    vt1 = protectedStrToF(strtok(NULL, delimiter3));
+                    normal1 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorY = protectedStrToF(strtok(NULL, delimiter3));
+                    vt2 = protectedStrToF(strtok(NULL, delimiter3));
+                    normal2 = protectedStrToF(strtok(NULL, delimiter1));
+                    vectorZ = protectedStrToF(strtok(NULL, delimiter3));
+                    vt3 = protectedStrToF(strtok(NULL, delimiter3));
+                    normal3 = protectedStrToF(strtok(NULL, delimiter2));
+                }
 
-                        printf("in the else statement\n");
-                        vectorX = protectedStrToF(strtok(NULL, delimiter3));
-                        vt1 = protectedStrToF(strtok(NULL, delimiter3));
-                        normal1 = protectedStrToF(strtok(NULL, delimiter1));
-                        vectorY = protectedStrToF(strtok(NULL, delimiter3));
-                        vt2 = protectedStrToF(strtok(NULL, delimiter3));
-                        normal2 = protectedStrToF(strtok(NULL, delimiter1));
-                        vectorZ = protectedStrToF(strtok(NULL, delimiter3));
-                        vt3 = protectedStrToF(strtok(NULL, delimiter3));
-                        normal3 = protectedStrToF(strtok(NULL, delimiter2));
-                  }
+                printf("use texture: %d\n", useTexture);
 
-                    printf("use texture: %d\n", useTexture);
+                Triangle triangle;
+                if (initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired,
+                                       useTexture) == -1) {
+                    printf("triangle couldn't be initialized\n");
+                    return 1;
+                }
+                if (setTriangleNormal(&triangle, normal1, normal2, normal3) == -1) {
+                    printf("triangle normal not a number\n");
+                    printf("%f\n", normal1);
+                    printf("%f\n", normal2);
+                    printf("%f\n", normal3);
+                    return 1;
+                }
 
-                    Triangle triangle;
-                    initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired, useTexture);
-                    if(setTriangleNormal(&triangle, normal1, normal2, normal3) == -1){
-                        printf("%f\n", normal1);
-                        printf("%f\n", normal2);
-                        printf("%f\n", normal3);
-                        return 1;
-                        
-                    }
+                if (setTriangleTexture(&triangle, vt1, vt2, vt3) == -1) {
+                    printf("triangle texture not a number\n");
+                    printf("%f\n", vt1);
+                    printf("%f\n", vt2);
+                    printf("%f\n", vt3);
+                    return 1;
+                }
 
-                    if(setTriangleTexture(&triangle, vt1, vt2, vt3) == -1){
-                        
-                        printf("%f\n", vt1);
-                        printf("%f\n", vt2);
-                        printf("%f\n", vt3);
-                        return 1;
-                    }
+                if (setIntrinsicTriangle(&triangle, Odr, Odg, Odb) == -1) {
+                    return 1;
+                }
+                if (setSpecularTriangle(&triangle, Osr, Osg, Osb) == -1) {
+                    return 1;
+                }
+                if (setTriangleWeight(&triangle, ka, kd, ks) == -1) {
+                    return 1;
+                }
+                if (setTriangleShinyFactor(&triangle, n) == -1) {
+                    return 1;
+                }
 
-                    setIntrinsicTriangle(&triangle, Odr, Odg, Odb);
-                    setSpecularTriangle(&triangle, Osr, Osg, Osb);
-                    setTriangleWeight(&triangle, ka, kd, ks);
-                    setTriangleShinyFactor(&triangle, n);
+                printf("triangle initialization: ");
+                printTriangle(&triangle);
 
-
-                    printf("triangle initialization: ");
-                    printTriangle(&triangle);
-                    
-                    tri_list_add(faces, &triangle);
-            }else if(strcmp(token, "vn") == 0){
+                if (tri_list_add(faces, &triangle) == -1) {
+                    return 1;
+                }
+            } else if (strcmp(token, "vn") == 0) {
                 isNormalAcquired = 1;
 
                 printf("entered the vector normal condition \n");
@@ -489,32 +474,37 @@ int main() {
                 vectorZ = protectedStrToF(strtok(NULL, delimiter2));
 
                 Vector vertex;
-                if(initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1){
+                if (initialize_vector(&vertex, vectorX, vectorY, vectorZ) == -1) {
                     printf("the vertex coordinates are not a number\n");
                     return 1;
                 }
-                vec_list_add(normals, &vertex);
-                
-                
-            }else if(strcmp(token, "texture") == 0){
+                if (vec_list_add(normals, &vertex) == -1) {
+                    return 1;
+                }
+
+            } else if (strcmp(token, "texture") == 0) {
                 useTexture++;
 
                 Texture *image = malloc(sizeof(Texture));
 
-                char* fileName = strtok(NULL, delimiter2);
+                char *fileName = strtok(NULL, delimiter2);
 
                 char texture[100] = "texture/";
                 char *filePath = strcat(texture, fileName);
-                printf("%s\n", filePath);                 
+                printf("%s\n", filePath);
 
                 FILE *ppmFile = fopen(filePath, "r");
+                if (ppmFile == NULL) {
+                    printf("failed to open ppm file\n");
+                    return 1;
+                }
                 char ppmbuf[100];
                 fgets(ppmbuf, 100, ppmFile);
-                
+
                 printf("in texture section\n");
                 char *last;
                 char *header = strtok_r(ppmbuf, delimiter1, &last);
-                if(strcmp(header,"P3") != 0){
+                if (strcmp(header, "P3") != 0) {
                     printf("not proper ppm file\n");
                     continue;
                 }
@@ -522,9 +512,9 @@ int main() {
                 int ppmWidth = atoi(strtok_r(last, delimiter1, &last));
                 int ppmHeight = atoi(strtok_r(last, delimiter1, &last));
 
-                image->data = malloc(ppmHeight* sizeof(vec_list*));
+                image->data = malloc(ppmHeight * sizeof(vec_list *));
                 image->height = ppmHeight;
-                if(ppmRead(image->data, ppmFile, ppmWidth, ppmHeight) == -1){
+                if (ppmRead(image->data, ppmFile, ppmWidth, ppmHeight) == -1) {
                     printf("failed to read ppm\n");
                     return -1;
                 }
@@ -532,20 +522,21 @@ int main() {
                 fclose(ppmFile);
 
                 tex_list_add(textures, image);
-                
-                
-            }else if(strcmp(token, "vt") == 0){
+
+            } else if (strcmp(token, "vt") == 0) {
                 printf("entered vt section\n");
                 isTexCoord = 1;
                 u = protectedStrToF(strtok(NULL, delimiter1));
                 v = protectedStrToF(strtok(NULL, delimiter2));
 
                 Vector texCoord;
-                if(initialize_vector(&texCoord, u, v, 0.0) == -1){
+                if (initialize_vector(&texCoord, u, v, 0.0) == -1) {
                     printf("texture coordinate array not created properly\n");
                     return 1;
                 }
-                vec_list_add(textureCoord, &texCoord);
+                if (vec_list_add(textureCoord, &texCoord) == -1) {
+                    return 1;
+                }
             }
         }
 
@@ -554,23 +545,23 @@ int main() {
         lightIndex = 0;
         m = 0;
 
-        if(initialize_camera(camera, eyeX, eyeY, eyeZ) == -1){
+        if (initialize_camera(camera, eyeX, eyeY, eyeZ) == -1) {
             printf("camera coordinates are not numbers\n");
             continue;
         }
-        if(setViewingDirection(camera, viewDirX, viewDirY, viewDirZ)==-1){
+        if (setViewingDirection(camera, viewDirX, viewDirY, viewDirZ) == -1) {
             printf("viewing direction coordinates are not numbers\n");
             continue;
         }
-        if(setVericalFOV(camera, vfov)==-1){
+        if (setVericalFOV(camera, vfov) == -1) {
             printf("vertical fov is not a number\n");
             continue;
         }
-        if(setUpVector(camera, updirX, updirY, updirZ)==-1){
+        if (setUpVector(camera, updirX, updirY, updirZ) == -1) {
             printf("up vector coordinates are not numbers\n");
             continue;
         }
-        if(setAspectRatio(camera, strtof(width, NULL), strtof(height, NULL))== -1){
+        if (setAspectRatio(camera, strtof(width, NULL), strtof(height, NULL)) == -1) {
             printf("width and height are not numbers\n");
             continue;
         }
@@ -580,24 +571,16 @@ int main() {
 
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
-
-
-
-
-
-        for(int i = 1; i < vertices->length + 1; i++){
+        for (int i = 1; i < vertices->length + 1; i++) {
             printf("v%d ", i);
             printVector(vec_list_get(vertices, i));
         }
         printf("%d\n", faces->length);
-        for(int i = 1; i < faces->length + 1; i++){
-            
+        for (int i = 1; i < faces->length + 1; i++) {
             printf("f%d ", i);
             printTriangle(tri_list_get(faces, i));
-            
         }
-        for(int i = 1; i < normals->length + 1; i++){
-            
+        for (int i = 1; i < normals->length + 1; i++) {
             printf("vn%d ", i);
             printVector(vec_list_get(normals, i));
         }
@@ -629,8 +612,8 @@ int main() {
             free(backgroundColor);
             return 1;
         }
-        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length, vertices, faces, normals, textures, textureCoord) ==
-            -1) {
+        if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length,
+                       vertices, faces, normals, textures, textureCoord) == -1) {
             fclose(ppmFile);
             fclose(inputFile);
             free(camera);
@@ -642,17 +625,16 @@ int main() {
 
         printCamera(camera);
         fclose(inputFile);
-        for(int i = 0; i < length; i++){
+        for (int i = 0; i < length; i++) {
             free(sphereArray[i]);
         }
-        for(int i = 0; i < lengthOfLight; i++){
+        for (int i = 0; i < lengthOfLight; i++) {
             free(lightArray[i]);
         }
-        for(int i = 1; i < textures->length + 1; i++){
-            
+        for (int i = 1; i < textures->length + 1; i++) {
             printf("texture%d \n", i);
             Texture *temp = tex_list_get(textures, i);
-            for(int j = 0; j<temp->height; j++){
+            for (int j = 0; j < temp->height; j++) {
                 vec_list *list = temp->data[j];
 
                 // for(int k = 1; k<list->length; k++){
@@ -667,7 +649,6 @@ int main() {
         vec_list_clear(normals);
         tex_list_clear(textures);
         vec_list_clear(textureCoord);
-    
     }
 
     free(camera);
