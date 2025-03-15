@@ -406,7 +406,6 @@ int main() {
                     normal3 = protectedStrToF(temp);
 
                 } else if (!isNormalAcquired && useTexture) {
-                    printf("if 3\n");
                     vectorX = protectedStrToF(strtok(NULL, delimiter3));
                     vt1 = protectedStrToF(strtok(NULL, delimiter1));
                     vectorY = protectedStrToF(strtok(NULL, delimiter3));
@@ -414,7 +413,6 @@ int main() {
                     vectorZ = protectedStrToF(strtok(NULL, delimiter3));
                     vt3 = protectedStrToF(strtok(NULL, delimiter2));
                 } else if (isNormalAcquired && useTexture) {
-                    printf("in the else statement\n");
                     vectorX = protectedStrToF(strtok(NULL, delimiter3));
                     vt1 = protectedStrToF(strtok(NULL, delimiter3));
                     normal1 = protectedStrToF(strtok(NULL, delimiter1));
@@ -463,8 +461,8 @@ int main() {
                     return 1;
                 }
 
-                printf("triangle initialization: ");
-                printTriangle(&triangle);
+                // printf("triangle initialization: ");
+                // printTriangle(&triangle);
 
                 if (tri_list_add(faces, &triangle) == -1) {
                     return 1;
@@ -520,6 +518,7 @@ int main() {
                 image->height = ppmHeight;
                 if (ppmRead(image->data, ppmFile, ppmWidth, ppmHeight) == -1) {
                     printf("failed to read ppm\n");
+                    fclose(ppmFile);
                     return -1;
                 }
 
@@ -575,19 +574,6 @@ int main() {
 
         initializeColorType(backgroundColor, bcX, bcY, bcZ);
 
-        for (int i = 1; i < vertices->length + 1; i++) {
-            printf("v%d ", i);
-            printVector(vec_list_get(vertices, i));
-        }
-        printf("%d\n", faces->length);
-        for (int i = 1; i < faces->length + 1; i++) {
-            printf("f%d ", i);
-            printTriangle(tri_list_get(faces, i));
-        }
-        for (int i = 1; i < normals->length + 1; i++) {
-            printf("vn%d ", i);
-            printVector(vec_list_get(normals, i));
-        }
 
         // all the information has been collected to define image coordinates
 
@@ -636,7 +622,6 @@ int main() {
             free(lightArray[i]);
         }
         for (int i = 1; i < textures->length + 1; i++) {
-            printf("texture%d \n", i);
             Texture *temp = tex_list_get(textures, i);
             for (int j = 0; j < temp->height; j++) {
                 vec_list *list = temp->data[j];
