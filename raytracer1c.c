@@ -108,6 +108,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
                          camera->numberOfLights, vertices, faces, normals, textures, texCoord, 0);
 
             if (intersectColor.r < 0) {
+                printColor(&intersectColor);
                 printf("color returned is not valid\n");
                 return -1;
             }
