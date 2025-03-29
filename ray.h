@@ -8,11 +8,15 @@
 typedef struct {
     float x, y, z;
     float dx, dy, dz;
-    float r, g, b;
+    float indexOfSphere;
+    float indexOfTriangle;
+    float bgIndexOfrefraction;
+    float currentIndeOfRefraction;
+    short isInsideObject;
 } RayType;
 
 //initializes the position of the ray
-void initializeRayType(RayType *ray, float x, float y, float z);
+void initializeRayType(RayType *ray, float x, float y, float z, float bgIndexOfRefraction);
 
 // sets the direction of the ray
 void setDirection(RayType *ray, float dx, float dy, float dz);
@@ -26,7 +30,11 @@ RayType* scalarRayMult(float scalar, RayType *ray);
 // calculates the magnitude of the ray
 float Raylength(RayType *ray);
 
-int recordColor(RayType *ray, float r, float g, float b);
+void setSphereIndex(RayType *ray, float index);
+
+void setRayCurrentIdxOfRefraction(RayType *ray, float curIdxOfRefraction);
+
+void setIsInsideObject(RayType *ray, short isInsideObject);
 
 // print the ray in the console for debugging
 void printRay(RayType *ray);

@@ -5,7 +5,7 @@
 #include "stdio.h"
 #include "vector.h"
 int initializeSphere(SphereType *sphere, float x, float y, float z, float radius, int m,
-                     int useTexture) {
+                     int useTexture, float backgroundRefraction) {
     if (isnan(x) || isnan(y) || isnan(z) || isnan(radius)) {
         printf("sphere coordinates are not a number\n");
         return -1;
@@ -30,6 +30,9 @@ int initializeSphere(SphereType *sphere, float x, float y, float z, float radius
 
     sphere->shinyFactor = 0;
     sphere->useTexture = useTexture;
+    sphere->opacity = 1;
+    sphere->indexOfRefraction = 1;
+    sphere->backgroundRefraction = backgroundRefraction;
     return 0;
 }
 
@@ -73,6 +76,18 @@ int setShinyFactor(SphereType *sphere, int shinyFactor) {
     return 0;
 }
 
+int setOpacityAndRefraction(SphereType *sphere, float opacity, float indexOfRefraction){
+    if(isnan(opacity) || isnan(indexOfRefraction)){
+        printf("opacity or index of refraction are not numbers");
+        printf("opacity: %f\n", opacity);
+        printf("index of refraction: %f\n", indexOfRefraction);
+        return -1;
+    }
+    sphere->opacity = opacity;
+    sphere->indexOfRefraction = indexOfRefraction;
+    return 0;
+}
+
 void printSphere(SphereType *sphere) {
     printf("sphere position: (x, y, z) = (%f, %f, %f)\n", sphere->x, sphere->y, sphere->z);
     printf("sphere Intrinsic color: (Odr, Odg, Odb) = (%f, %f, %f)\n", sphere->Odr, sphere->Odg,
@@ -83,11 +98,13 @@ void printSphere(SphereType *sphere) {
     printf("Sphere shiny factor = %d\n", sphere->shinyFactor);
     printf("sphere radius:  = %f\n", sphere->radius);
     printf("sphere tag:  = %d\n", sphere->m);
-    printf("use texture: %d\n\n", sphere->useTexture);
+    printf("use texture: %d\n", sphere->useTexture);
+    printf("opacity: %f\n", sphere->opacity);
+    printf("index of refraction: %f\n\n", sphere->indexOfRefraction);
 }
 
 int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth,
-                       int useTexture) {
+                       int useTexture, float backgroundRefraction) {
     if (isnan(v1) || isnan(v2) || isnan(v3)) {
         printf("triangle coordinates are not a number\n");
         return -1;
@@ -120,6 +137,11 @@ int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isS
 
     triangle->isSmoothShaded = isSmooth;
     triangle->useTexture = useTexture;
+
+    triangle->opacity = 1;
+    triangle->indexOfRefraction = 1;
+    triangle->backgroundRefraction = backgroundRefraction;
+
     return 0;
 }
 
@@ -189,6 +211,19 @@ int setTriangleShinyFactor(Triangle *triangle, int shinyFactor) {
     return 0;
 }
 
+int setOpacityAndRefractionTriangle(Triangle *triangle, float opacity, float indexOfRefraction){
+
+    if(isnan(opacity) || isnan(indexOfRefraction)){
+        printf("opacity or index of refraction are not numbers");
+        printf("opacity: %f\n", opacity);
+        printf("index of refraction: %f\n", indexOfRefraction);
+        return -1;
+    }
+    triangle->opacity = opacity;
+    triangle->indexOfRefraction = indexOfRefraction;
+    return 0;
+}
+
 void printTriangle(Triangle *triangle) {
     printf("triangle vertices: (x, y, z) = (%f, %f, %f)\n", triangle->face.dx, triangle->face.dy,
            triangle->face.dz);
@@ -203,4 +238,6 @@ void printTriangle(Triangle *triangle) {
     printf("triangle shiny factor = %d\n", triangle->shinyFactor);
     printf("triangle isSmoothShaded = %d\n", triangle->isSmoothShaded);
     printf("triangle useTexture = %d\n", triangle->useTexture);
+    printf("opacity: %f\n", triangle->opacity);
+    printf("index of refraction: %f\n\n", triangle->indexOfRefraction);
 }

@@ -19,7 +19,9 @@ void initializeColorType(ColorType *color, float r, float g, float b);
 /// color with values of -1 to indicate error
 
 ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
-                   ColorType *backgroundColor, Light** light, int numberOfLights, vec_list *vertices, tri_list *faces, vec_list *normals, tex_list *textures, vec_list *texCoord);
+                   ColorType *backgroundColor, Light** light, int numberOfLights,
+                   vec_list *vertices, tri_list *faces, vec_list *normals,
+                   tex_list *textures, vec_list *texCoord, int depth);
 
 
 /// @brief colors the ray of with the closest object of intersection
@@ -34,13 +36,14 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, RayType *ray,
                    Vector *surfacePoint,  Light** light, int numberOfLights, SphereType** sphereArray,
                    int sizeOfArray, Vector *normalCoord, Vector* barycentric, vec_list* normals,
-                   tex_list *textures, vec_list *texCoord, tri_list *faces, vec_list *vertices);
+                   tex_list *textures, vec_list *texCoord, tri_list *faces, vec_list *vertices, int depth,
+                    ColorType * backgroundColor);
 
 
 ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light** lightArray,
                         int numberOfLights, Vector *normalCoord, Vector* barycentric,vec_list* normals,
                         tex_list *textures, vec_list *texCoord, SphereType ** sphereArray, int sizeOfArray,
-                        tri_list *faces, vec_list *vertices);
+                        tri_list *faces, vec_list *vertices, int depth);
 /// @brief prints the attributes of the color for debugging
 /// @param color
 void printColor(ColorType *color);

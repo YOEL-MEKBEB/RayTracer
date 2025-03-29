@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,7 +51,7 @@ int writeHeader(FILE *file, char *width, char *height) {
 /// @return returns 0 on success and -1 on failure
 int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType *backgroundColor,
                SphereType **sphereArray, int lengthOfArray, vec_list *vertices, tri_list *faces,
-               vec_list *normals, tex_list *textures, vec_list *texCoord) {
+               vec_list *normals, tex_list *textures, vec_list *texCoord, float bgIndexOfRefraction) {
     printf("entered writeImage\n");
     int numWidth = atoi(width);
 
@@ -86,7 +84,8 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
         for (int j = 0; j < numWidth; j++) {
             RayType ray;
             initializeRayType(&ray, camera->viewOrigin.dx, camera->viewOrigin.dy,
-                              camera->viewOrigin.dz);
+                              camera->viewOrigin.dz, bgIndexOfRefraction);
+            setRayCurrentIdxOfRefraction(&ray, bgIndexOfRefraction);
 
             Vector row = scalarVecMult(j, &changeH);
 
@@ -102,13 +101,14 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
             // printf("viewingPoint: (%f, %f, %f)\n", viewingPoint.dx, viewingPoint.dy,
             // viewingPoint.dz);
             setDirection(&ray, direction.dx, direction.dy, direction.dz);
+            setSphereIndex(&ray, -1);
 
             ColorType intersectColor =
                 traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light,
-                         camera->numberOfLights, vertices, faces, normals, textures, texCoord);
+                         camera->numberOfLights, vertices, faces, normals, textures, texCoord, 0);
 
             if (intersectColor.r < 0) {
-                printf("issue is here\n");
+                printf("color returned is not valid\n");
                 return -1;
             }
 
@@ -148,6 +148,7 @@ int main() {
     char *delimiter1 = " ";
     char *delimiter2 = "\n";
     char *delimiter3 = "/";
+    char *delimiter = " \n/";
     int m = 0;    // shape tag;
     SphereType *sphereArray[10];
     Light *lightArray[10];
@@ -206,6 +207,7 @@ int main() {
         float bcX;
         float bcY;
         float bcZ;
+        float bcRefracion;
 
         float Odr;
         float Odg;
@@ -220,6 +222,8 @@ int main() {
         float ks;
 
         int n;
+        float opacity;
+        float idxOfRefraction;
 
         float lightX, lightY, lightZ;
         int isPointLight;
@@ -277,7 +281,8 @@ int main() {
             } else if (strcmp(token, "bkgcolor") == 0) {
                 bcX = protectedStrToF(strtok(NULL, delimiter1));
                 bcY = protectedStrToF(strtok(NULL, delimiter1));
-                bcZ = protectedStrToF(strtok(NULL, delimiter2));
+                bcZ = protectedStrToF(strtok(NULL, delimiter1));
+                bcRefracion = protectedStrToF(strtok(NULL, delimiter2));
 
             } else if ((strcmp(token, "mtlcolor") == 0)) {
                 Odr = protectedStrToF(strtok(NULL, delimiter1));
@@ -296,7 +301,10 @@ int main() {
                 ks = protectedStrToF(strtok(NULL, delimiter1));
 
                 printf("weights: (%f, %f, %f)\n", ka, kd, ks);
-                n = atoi(strtok(NULL, delimiter2));
+                n = atoi(strtok(NULL, delimiter1));
+
+                opacity = protectedStrToF(strtok(NULL, delimiter1));
+                idxOfRefraction = protectedStrToF(strtok(NULL, delimiter2));
 
             } else if ((strcmp(token, "sphere") == 0)) {
                 X = protectedStrToF(strtok(NULL, delimiter1));
@@ -307,7 +315,7 @@ int main() {
 
                 SphereType *sphere = malloc(sizeof(SphereType));
                 // SphereType sphere;
-                if (initializeSphere(sphere, X, Y, Z, r, m, useTexture) == -1) {
+                if (initializeSphere(sphere, X, Y, Z, r, m, useTexture, bcRefracion) == -1) {
                     return 1;
                 }
                 if (setIntrinsicColor(sphere, Odr, Odg, Odb) == -1) {
@@ -320,6 +328,9 @@ int main() {
                     return 1;
                 }
                 if (setShinyFactor(sphere, n) == -1) {
+                    return 1;
+                }
+                if (setOpacityAndRefraction(sphere, opacity, idxOfRefraction) == -1){
                     return 1;
                 }
 
@@ -428,15 +439,14 @@ int main() {
 
                 Triangle triangle;
                 if (initializeTriangle(&triangle, vectorX, vectorY, vectorZ, isNormalAcquired,
-                                       useTexture) == -1) {
+                                       useTexture, bcRefracion) == -1) {
                     printf("triangle couldn't be initialized\n");
                     return 1;
                 }
                 if (setTriangleNormal(&triangle, normal1, normal2, normal3) == -1) {
                     printf("triangle normal not a number\n");
                     printf("%f\n", normal1);
-                    printf("%f\n", normal2);
-                    printf("%f\n", normal3);
+                    printf("%f\n", normal2);                    printf("%f\n", normal3);
                     return 1;
                 }
 
@@ -460,7 +470,9 @@ int main() {
                 if (setTriangleShinyFactor(&triangle, n) == -1) {
                     return 1;
                 }
-
+                if (setOpacityAndRefractionTriangle(&triangle, opacity, idxOfRefraction) == -1){
+                    return 1;
+                }
                 // printf("triangle initialization: ");
                 // printTriangle(&triangle);
 
@@ -603,7 +615,7 @@ int main() {
             return 1;
         }
         if (writeImage(ppmFile, camera, width, height, backgroundColor, sphereArray, length,
-                       vertices, faces, normals, textures, textureCoord) == -1) {
+                       vertices, faces, normals, textures, textureCoord, bcRefracion) == -1) {
             fclose(ppmFile);
             fclose(inputFile);
             free(camera);

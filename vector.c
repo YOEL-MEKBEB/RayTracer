@@ -45,15 +45,19 @@ float vectorLength(Vector* vector){
 }
 
 Vector scalarVecMult(float scalar, Vector *vector){
+    if(isnan(scalar)){
+        printf("scalar is not a number\n");
+    }
     Vector result;
+    // printVector(vector);
+    // printf("scalar: %f\n", scalar);
     float dx = scalar * vector->dx;
     float dy = scalar * vector->dy;
     float dz = scalar * vector->dz;
 
-    if(scalar == NAN){
-        printf("scalar is not a number"); 
+    if(initialize_vector(&result, dx, dy, dz) == -1){
+        printf("the issue is in scalar vec mult\n");
     }
-    initialize_vector(&result, dx, dy, dz);
     return result;
 }
 Vector normalize(Vector* vector){

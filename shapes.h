@@ -12,6 +12,9 @@ typedef struct {
     int useTexture;         // determines which texture to use the list of textures and serves as a
                             // boolean at the same time
     int m;                  // index of sphere in sphere array
+    float opacity;
+    float indexOfRefraction;
+    float backgroundRefraction;
 
 } SphereType;
 
@@ -23,7 +26,7 @@ typedef struct {
 /// @param radius radius of the sphere
 /// @param m a tag used for identification and debugging
 int initializeSphere(SphereType *sphere, float x, float y, float z, float radius, int m,
-                     int useTexture);
+                     int useTexture, float backgroundRefraction);
 
 /// @brief sets the color of the sphere
 /// @param sphere a pointer to a sphere
@@ -32,9 +35,17 @@ int initializeSphere(SphereType *sphere, float x, float y, float z, float radius
 /// @param b the blue color value
 int setIntrinsicColor(SphereType *sphere, float r, float g, float b);
 
+
 int setSpecularColor(SphereType *sphere, float r, float g, float b);
+
+
 int setWeight(SphereType *sphere, float ka, float kd, float ks);
+
+
 int setShinyFactor(SphereType *sphere, int shinyFactor);
+
+
+int setOpacityAndRefraction(SphereType* sphere, float opacity, float indexOfRefraction);
 
 // int setTexture(SphereType *sphere, vec_list **texture);
 
@@ -56,6 +67,9 @@ typedef struct {
     int isSmoothShaded;     // boolean to check whether to use vertex normals or not
     int useTexture;         // determines which texture to use the list of textures and serves as a
                             // boolean at the same time
+    float opacity;
+    float indexOfRefraction;
+    float backgroundRefraction;
 } Triangle;
 
 /// @brief initializes triangle
@@ -67,7 +81,7 @@ typedef struct {
 /// @param useTexture index of the texture in the texture list to be used
 /// @return returns 0 on success and -1 on failure
 int initializeTriangle(Triangle *triangle, float v1, float v2, float v3, int isSmooth,
-                       int useTexture);
+                       int useTexture, float backgroundRefraction);
 
 /// @brief sets the triangle normals indices
 /// @param triangle
@@ -114,6 +128,9 @@ int setTriangleWeight(Triangle *triangle, float ka, float kd, float ks);
 /// @param shinyFactor
 /// @return returns 0 on success and -1 on failure
 int setTriangleShinyFactor(Triangle *triangle, int shinyFactor);
+
+
+int setOpacityAndRefractionTriangle(Triangle* triangle, float opacity, float indexOfRefraction);
 
 /// @brief prints the triangles info for debugging
 /// @param triangle
