@@ -72,10 +72,10 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         } else {
             float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
             float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
-            // printf("t1: %f\n", t1);
+            printf("t1: %f\n", t1);
             // printf("t2: %f\n", t2);
 
-            float epsilon = 0.0001;
+            float epsilon = 0.001;
 
             if (t1 <= epsilon && t2 <= epsilon) {
                 t[i] = -1;
@@ -499,13 +499,10 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
     
 
-
-    // printf("nDOtL: %f\n", nDotL);
-
-
-    
     Vector sum2 = vectorAdd(&sumOfLights, &ambientTerm);
-        ///////////////////finding the reflected ray
+    if(ray->isInsideObject){
+        initialize_vector(&sum2, 0, 0, 0);
+    }
     float VDotN = dotProduct(&V, &N);
     float twoVDotN = 2 * VDotN;
     
@@ -527,53 +524,57 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
                
 
 
-    // if(reflectedDepth < 10){
+    ///////////////////finding the reflected ray
+    if(reflectedDepth < 10 && !ray->isInsideObject){
             
 
-    //         RayType reflectedRay;
-    //         initializeRayType(&reflectedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
-    //         setDirection(&reflectedRay, reflected.dx, reflected.dy, reflected.dz);
-    //         setSphereIndex(&reflectedRay, sphere->m);
-    //         setIsInsideObject(&reflectedRay, ray->isInsideObject);
+            RayType reflectedRay;
+            initializeRayType(&reflectedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
+            setDirection(&reflectedRay, reflected.dx, reflected.dy, reflected.dz);
+            setSphereIndex(&reflectedRay, sphere->m);
+            setIsInsideObject(&reflectedRay, ray->isInsideObject);
+            // reflectedRay.isReflecting = 1;
 
 
             
-    //         ColorType reflectedColor = traceRay(&reflectedRay, sphereArray, sizeOfArray, backgroundColor,
-    //                                             lightArray, numberOfLights, vertices, faces, normals, textures,
-    //                                              texCoord, reflectedDepth+1, transmittedDepth);
+            ColorType reflectedColor = traceRay(&reflectedRay, sphereArray, sizeOfArray, backgroundColor,
+                                                lightArray, numberOfLights, vertices, faces, normals, textures,
+                                                 texCoord, reflectedDepth+1, transmittedDepth+1);
 
-    //         // printf("dot: %f\n", twoVDotN);
-    //         // printf("initialF: %f\n", initialF);
-    //         // printf("reflectedF %f\n", reflectedF);
-    //         // // printVector(&V);
-    //         // // printVector(&N);
-    //         // printf("sphere: %d\n", sphere->m);
-    //         // printf("depth: %d\n ", depth);
-    //         if(reflectedColor.r == -1){
-    //             // this case cacthes the no intersection case
-    //             reflectedDepth = 10;
+            // printf("dot: %f\n", twoVDotN);
+            // printf("initialF: %f\n", initialF);
+            // printf("reflectedF %f\n", reflectedF);
+            // // printVector(&V);
+            // // printVector(&N);
+            // printf("sphere: %d\n", sphere->m);
+            // printf("depth: %d\n ", depth);
+            if(reflectedColor.r == -1){
+                // this case cacthes the no intersection case
+                reflectedDepth = 10;
             
             
-    //         }else if(reflectedColor.r == backgroundColor->r && reflectedColor.g == backgroundColor->g && reflectedColor.b == backgroundColor->b){
-    //             reflectedDepth = 10;
-    //             if(sphere->opacity < 1){
+            }else if(reflectedColor.r == backgroundColor->r && reflectedColor.g == backgroundColor->g && reflectedColor.b == backgroundColor->b){
+                reflectedDepth = 10;
+                if(sphere->opacity < 1){
                     
-    //                 Vector newColor;
-    //                 initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
-    //                 newColor = scalarVecMult(reflectedF, &newColor);
-    //                 sum2 = vectorAdd(&sum2, &newColor);
-    //             }
-    //         }else{
+                    Vector newColor;
+                    initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                    newColor = scalarVecMult(reflectedF, &newColor);
+                    sum2 = vectorAdd(&sum2, &newColor);
+                }
+            }else{
 
-    //             Vector newColor;
-    //             initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
-    //             newColor = scalarVecMult(reflectedF, &newColor);
-    //             sum2 = vectorAdd(&sum2, &newColor);
+                Vector newColor;
+                initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                newColor = scalarVecMult(reflectedF, &newColor);
+                sum2 = vectorAdd(&sum2, &newColor);
             
-    //         }
-    //         // printVector(&sum2);
+            }
+            // printVector(&sum2);
          
-    // }
+    }
+
+    ////////////////
     if(transmittedDepth < 10){
 
         ////////////////finding transmitted ray ////////////
@@ -599,10 +600,13 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
             setSphereIndex(&transmittedRay, sphere->m);
 
             setIsInsideObject(&transmittedRay, !ray->isInsideObject);
+            // transmittedRay.isTransmitting = 1;
             
             ColorType transmittedColor = traceRay(&transmittedRay, sphereArray, sizeOfArray, backgroundColor, lightArray,
-                                                  numberOfLights, vertices, faces, normals, textures, texCoord, reflectedDepth, transmittedDepth + 1);
+                                                  numberOfLights, vertices, faces, normals, textures, texCoord,
+                                                  reflectedDepth + 1, transmittedDepth + 1);
             // printf("depth: %d\n ", depth);
+
 
             if(transmittedColor.r == -1){
                 transmittedDepth = 10;
@@ -610,15 +614,33 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
                 if(transmittedColor.r == backgroundColor->r && transmittedColor.g == backgroundColor->g && transmittedColor.b == backgroundColor->b){
                     transmittedDepth = 10;
+                    if(!ray->isbackgroundcolored){
+                        
+                        Vector newColor;
+                        if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+                            printf("newcolor not initialized properly\n");
+                        }
+                        newColor = scalarVecMult((1-reflectedF) * (1 - sphere->opacity), &newColor);
+                        sum2 = vectorAdd(&sum2, &newColor);
+                    }
+                    transmittedRay.isbackgroundcolored = 1;
             
+                }else{
+                    
+                    Vector newColor;
+                    if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+                        printf("newcolor not initialized properly\n");
+                    }
+                    newColor = scalarVecMult((1-reflectedF) * (1 - sphere->opacity), &newColor);
+                    sum2 = vectorAdd(&sum2, &newColor);
                 }
                 
-                Vector newColor;
-                if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
-                    printf("newcolor not initialized properly\n");
-                }
-                newColor = scalarVecMult((1-reflectedF) * (1 - sphere->opacity), &newColor);
-                sum2 = vectorAdd(&sum2, &newColor);
+                // Vector newColor;
+                // if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+                //     printf("newcolor not initialized properly\n");
+                // }
+                // newColor = scalarVecMult((1-reflectedF) * (1 - sphere->opacity), &newColor);
+                // sum2 = vectorAdd(&sum2, &newColor);
             }
             
             
@@ -838,7 +860,6 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
 
             if ((pow(B, 2) - 4 * A * C) < 0) {
                     continue;
-                // return *backgroundColor;
             } else if ((pow(B, 2) - 4 * A * C) == 0) {
                 t = (-1 * B) / (2 * A);
                 

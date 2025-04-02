@@ -15,6 +15,9 @@ void initializeRayType(RayType *ray, float x, float y, float z, float bgIndexOfr
     ray->isInsideObject = 0;
     ray->indexOfSphere = -1;
     ray->indexOfTriangle = -1;
+    // ray->isReflecting = 0;
+    // ray->isTransmitting = 0;
+    ray->isbackgroundcolored = 0;
     
 }
 
