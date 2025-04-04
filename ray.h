@@ -13,8 +13,6 @@ typedef struct {
     float bgIndexOfrefraction;
     float currentIndeOfRefraction;
     short isInsideObject;
-    // short isReflecting;
-    // short isTransmitting;
     short isbackgroundcolored;
     
 } RayType;

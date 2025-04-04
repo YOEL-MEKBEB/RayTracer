@@ -15,8 +15,6 @@ void initializeRayType(RayType *ray, float x, float y, float z, float bgIndexOfr
     ray->isInsideObject = 0;
     ray->indexOfSphere = -1;
     ray->indexOfTriangle = -1;
-    // ray->isReflecting = 0;
-    // ray->isTransmitting = 0;
     ray->isbackgroundcolored = 0;
     
 }
@@ -27,19 +25,6 @@ void setDirection(RayType *ray, float dx, float dy, float dz){
     ray->dy = dy;
     ray->dz = dz;
 }
-
-// RayType* RaySum(RayType *ray1, RayType *ray2){
-//     RayType* sum = malloc(sizeof(RayType));
-//     sum->x = ray1->x;
-//     sum->y = ray1->y;
-//     sum->z = ray1->z;
-
-//     sum->dx = ray1->dx + ray2->dx;
-//     sum->dy = ray1->dy + ray2->dy;
-//     sum->dz = ray1->dz + ray2->dz;
-
-//     return sum;
-// }
 
 RayType* scalarRayMult(float scalar, RayType *ray){
     RayType* result = ray;
