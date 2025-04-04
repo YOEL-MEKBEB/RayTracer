@@ -8,8 +8,8 @@
 typedef struct {
     float x, y, z;
     float dx, dy, dz;
-    float indexOfSphere;
-    float indexOfTriangle;
+    short indexOfSphere;
+    short indexOfTriangle;
     float bgIndexOfrefraction;
     float currentIndeOfRefraction;
     short isInsideObject;

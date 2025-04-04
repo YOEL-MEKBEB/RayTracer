@@ -44,7 +44,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light** lightArray,
                         int numberOfLights, Vector *normalCoord, Vector* barycentric,vec_list* normals,
                         tex_list *textures, vec_list *texCoord, SphereType ** sphereArray, int sizeOfArray,
-                        tri_list *faces, vec_list *vertices, int reflectedDepth, int transmittedDepth);
+                        tri_list *faces, vec_list *vertices, int reflectedDepth, int transmittedDepth, ColorType *backgroundColor);
 /// @brief prints the attributes of the color for debugging
 /// @param color
 void printColor(ColorType *color);

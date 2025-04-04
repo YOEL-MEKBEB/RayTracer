@@ -107,6 +107,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
                 traceRay(&ray, sphereArray, lengthOfArray, backgroundColor, camera->light,
                          camera->numberOfLights, vertices, faces, normals, textures, texCoord, 0, 0);
 
+            // printColor(&intersectColor);
             if (intersectColor.r < 0) {
                 printColor(&intersectColor);
                 printf("color returned is not valid\n");

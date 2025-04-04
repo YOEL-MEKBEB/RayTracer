@@ -21,8 +21,8 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
     // printf("%d\n", sizeOfArray);
     //
 
-
     SphereType *sphere;
+
     float A;
     float B;
     float C;
@@ -72,7 +72,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         } else {
             float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
             float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
-            printf("t1: %f\n", t1);
+            // printf("t1: %f\n", t1);
             // printf("t2: %f\n", t2);
 
             float epsilon = 0.001;
@@ -102,6 +102,11 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
     float gammaList[faces->length];
 
     for (int i = 1; i < faces->length + 1; i++){
+
+        if(ray->indexOfTriangle == i){
+            t_faces[i-1] = -1;
+            continue;
+        }
         // printf("entered faces loop\n");
         Triangle *triangle = tri_list_get(faces, i);
         Vector normal;
@@ -187,7 +192,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         normal = normalize(&normal);
         normalList [i-1] = normal;
         
-
+        // printf("t: %f\n", t);
         if(t < 0){
             t_faces[i-1] = -1;
         }else if(alpha < 0 || beta < 0 || gamma < 0){
@@ -247,6 +252,8 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
 
 
             // printVector(&pointOfintersection);
+        ray->indexOfTriangle = minFaceIndex+1;
+        // printRay(ray);
         color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric , normals, textures, texCoord, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
         
     }else if(faces->length <= 0){
@@ -269,6 +276,7 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
                          ray->z + t_faces[minFaceIndex] * ray->dz) == -1){
             printf("surface point creation in trace ray is not working");
         }
+        ray->indexOfTriangle = minFaceIndex + 1;
         color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric,normals, textures, texCoord, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
     }else if (t[minIndex] > -1 && t_faces[minFaceIndex] == -1){
         
@@ -279,13 +287,20 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric, normals, textures, texCoord, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
     } else{
             // printf("entered case 4\n");
+        if(initialize_vector(&pointOfintersection, ray->x + t[minIndex] * ray->dx, ray->y + t[minIndex] * ray->dy,
+                          ray->z + t[minIndex] * ray->dz) == -1){
+            printf("surface point creation in trace ray is not working");
+        }
         if(t[minIndex] < t_faces[minFaceIndex]){
-        
-            if(initialize_vector(&pointOfintersection, ray->x + t[minIndex] * ray->dx, ray->y + t[minIndex] * ray->dy,
-                              ray->z + t[minIndex] * ray->dz) == -1){
-                printf("surface point creation in trace ray is not working");
-            }
             color = shadeRay("Sphere", sphereArray[minIndex], NULL, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric,normals,textures, texCoord, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
+        }else{
+            
+            ray->indexOfTriangle = minFaceIndex + 1;
+            Triangle *triangle = tri_list_get(faces, minFaceIndex + 1);
+            normal = normalList[minFaceIndex];
+        
+            initialize_vector(&barycentric, alphaList[minFaceIndex], betaList[minFaceIndex], gammaList[minFaceIndex]);
+            color = shadeRay("triangle", NULL, triangle, ray, &pointOfintersection, light, numberOfLights, sphereArray, sizeOfArray, &normal, &barycentric,normals, textures, texCoord, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
         }
     }
     return color;
@@ -296,7 +311,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
     ColorType color;
     if(strcmp(objectType, "triangle") == 0){
-        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, normalCoord, barycentric, normals, textures, texCoord, sphereArray, sizeOfArray, faces, vertices, reflectedDepth, transmittedDepth);
+        color = shadeTriangle(triangle, ray, surfacePoint, lightArray, numberOfLights, normalCoord, barycentric, normals, textures, texCoord, sphereArray, sizeOfArray, faces, vertices, reflectedDepth, transmittedDepth, backgroundColor);
         return color;
     }
     Vector intrinsicColor;
@@ -361,7 +376,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
         
     }  
 
-    int shadowFlag[numberOfLights];
+    float shadowFlag[numberOfLights];
     for(int j=0; j<numberOfLights; j++){
     
         RayType lightRay;
@@ -390,7 +405,6 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
             if ((pow(B, 2) - 4 * A * C) < 0) {
                     continue;
-                // return *backgroundColor;
             } else if ((pow(B, 2) - 4 * A * C) == 0) {
                 t = (-1 * B) / (2 * A);
                 
@@ -405,13 +419,90 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
                 }
             }
 
-            if(t <= 0){
+            if(t <= 0.01){
                 continue;
             }else{
-                shadowFlag[j] = 1- obstructingSphere->opacity;
-                break;
+                shadowFlag[j] *= 1-obstructingSphere->opacity;
             }
         }
+        for (int i = 1; i < faces->length + 1; i++){
+            // printf("entered faces loop\n");
+            Triangle *tri = tri_list_get(faces, i);
+
+            // if(tri->face.dx == triangle->face.dx &&  tri->face.dy == triangle->face.dy  && tri->face.dz == triangle->face.dz){
+            //     continue;
+            // }
+
+            Vector normal;
+
+            int index1 = (int) tri->face.dx;
+            int index2 = (int) tri->face.dy;
+            int index3 = (int) tri->face.dz;
+
+            Vector *vertex1 = vec_list_get(vertices, index1);
+            Vector *vertex2 = vec_list_get(vertices, index2);
+            Vector *vertex3 = vec_list_get(vertices, index3);
+
+            Vector negVertex1 = scalarVecMult(-1, vertex1);
+
+            Vector vector1 = vectorAdd(vertex2, &negVertex1); 
+            Vector vector2 = vectorAdd(vertex3, &negVertex1); 
+        
+            normal = crossProduct(&vector1, &vector2);
+
+            // printf("normal calculation\n");
+            // printVector(&normal);
+
+            A = normal.dx;
+            B = normal.dy;
+            C = normal.dz;
+        
+            float D = -1 * (A * vertex1->dx + B * vertex1->dy + C * vertex1->dz);
+
+            float denominator = A * lightRay.dx + B * lightRay.dy + C * lightRay.dz;
+
+            if(denominator == 0){
+                continue;
+            }
+
+            float numerator = -1 * (A * lightRay.x + B * lightRay.y + C * lightRay.z + D);
+            float t = numerator/denominator;
+
+            Vector tempPoint;
+        
+            if(initialize_vector(&tempPoint, lightRay.x + t * lightRay.dx, lightRay.y + t * lightRay.dy,
+                                  lightRay.z + t * lightRay.dz) == -1){
+                 printf("surface point creation in trace lightRay.s not working");
+            }
+
+
+        
+            Vector e_p = vectorAdd(&tempPoint, &negVertex1);
+
+        
+            float d11 = dotProduct(&vector1, &vector1);
+            float d12 = dotProduct(&vector1, &vector2);
+            float d22 = dotProduct(&vector2, &vector2);
+            float d1p = dotProduct(&vector1, &e_p);
+            float d2p = dotProduct(&vector2, &e_p);
+
+            float det = (d11 * d22) - (d12 * d12);
+
+            float beta = (d22*d1p - d12*d2p)/det;
+            float gamma = (d11*d2p - d12*d1p)/det;
+            float alpha = 1 - beta - gamma;
+
+      
+            if(t <= 0){
+                continue;
+            }else if(alpha < 0 || beta < 0 || gamma < 0){
+                continue;
+            }else{
+                shadowFlag[j] *= 1-tri->opacity;
+            }
+        
+        }
+        // printf("shadowflag: %f\n", shadowFlag[j]);
 
     }
 
@@ -508,9 +599,9 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
     
     // printRay(ray);
 
-    // if(VDotN < 0){
-    //     VDotN = 0;
-    // }
+    if(VDotN < 0){
+        VDotN = 0;
+    }
     Vector twoA = scalarVecMult(twoVDotN, &N);
     Vector negIncidence = scalarVecMult(-1, &V);        
     Vector reflected = vectorAdd(&twoA, &negIncidence);        
@@ -525,7 +616,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
 
     ///////////////////finding the reflected ray
-    if(reflectedDepth < 10 && !ray->isInsideObject){
+    if(reflectedDepth < 10){
             
 
             RayType reflectedRay;
@@ -579,10 +670,39 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 
         ////////////////finding transmitted ray ////////////
 
-        if(reflectedF != 1 && sphere->opacity != 1){
-            printf("entered transmitted ray\n");
+        float termInSqrt = pow(ray->currentIndeOfRefraction/transmittedIOR, 2) * (1 - pow(VDotN, 2));
+        if(termInSqrt> 1){
+            printf("total internal reflection has occured\n");
+            RayType reflectedRay;
+            initializeRayType(&reflectedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
+            setDirection(&reflectedRay, reflected.dx, reflected.dy, reflected.dz);
+            setSphereIndex(&reflectedRay, sphere->m);
+            setIsInsideObject(&reflectedRay, ray->isInsideObject);
+            // reflectedRay.isReflecting = 1;
+
+
+            
+            ColorType reflectedColor = traceRay(&reflectedRay, sphereArray, sizeOfArray, backgroundColor,
+                                                lightArray, numberOfLights, vertices, faces, normals, textures,
+                                                 texCoord, reflectedDepth+1, transmittedDepth+1);
+
+            if(reflectedColor.r == -1){
+                // this case cacthes the no intersection case
+                transmittedDepth = 10;
+            
+           }else{
+
+                Vector newColor;
+                initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                newColor = scalarVecMult(reflectedF, &newColor);
+                sum2 = vectorAdd(&sum2, &newColor);
+            
+            }
+        }else if(reflectedF != 1 && sphere->opacity != 1){
+            // printf("entered transmitted ray\n");
             Vector negN = scalarVecMult(-1, &N);
-            Vector A = scalarVecMult(sqrt(1 - (pow(ray->currentIndeOfRefraction/transmittedIOR, 2) * (1 - pow(VDotN, 2)))), &negN);
+            
+            Vector A = scalarVecMult(sqrt(1 - termInSqrt), &negN);
             Vector B = scalarVecMult(VDotN, &N);
             B = vectorAdd(&B, &negIncidence);
             B = scalarVecMult(ray->currentIndeOfRefraction/transmittedIOR, &B);
@@ -685,7 +805,7 @@ ColorType shadeRay(char* objectType, SphereType* sphere, Triangle *triangle, Ray
 }
 
 
-ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *normalCoord, Vector *barycentric, vec_list* normals, tex_list *textures, vec_list *texCoord, SphereType **sphereArray, int sizeOfArray, tri_list *faces, vec_list* vertices, int reflectedDepth, int transmittedDepth){
+ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, Light **lightArray, int numberOfLights, Vector *normalCoord, Vector *barycentric, vec_list* normals, tex_list *textures, vec_list *texCoord, SphereType **sphereArray, int sizeOfArray, tri_list *faces, vec_list* vertices, int reflectedDepth, int transmittedDepth, ColorType *backgroundColor){
     
     // printf("entered shade triangle\n");
     Vector intrinsicColor;
@@ -727,6 +847,11 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
         initialize_vector(&planeNormal, normalCoord->dx, normalCoord->dy, normalCoord->dz);
     }
 
+    float transmittedIOR = triangle->indexOfRefraction;
+    if(ray->isInsideObject){
+        planeNormal = scalarVecMult(-1, &planeNormal);
+        transmittedIOR = ray->bgIndexOfrefraction;
+    }
 
     
     if(triangle->useTexture){
@@ -831,7 +956,7 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
     
     Vector ambientTerm = scalarVecMult(triangle->ka, &intrinsicColor);
   
-    int shadowFlag[numberOfLights];
+    float shadowFlag[numberOfLights];
     for(int j=0; j<numberOfLights; j++){
     
         RayType lightRay;
@@ -877,7 +1002,7 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
             if(t <= 0){
                 continue;
             }else{
-                shadowFlag[j] = 0;
+                shadowFlag[j] *= 1-obstructingSphere->opacity;
                 break;
             }
         }
@@ -954,16 +1079,13 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
             }else if(alpha < 0 || beta < 0 || gamma < 0){
                 continue;
             }else{
-                shadowFlag[j] = 0;
+                shadowFlag[j] *= 1-tri->opacity;
                 break;
             }
         
         } 
 
     }
-
-    
-
 
     for(int i = 0; i<numberOfLights; i++){
         H[i] = vectorAdd(&L[i], &V);
@@ -992,9 +1114,198 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
     }
 
 
+    Vector sum2 = vectorAdd(&sumOfLights, &ambientTerm);
+    if(ray->isInsideObject){
+        // initialize_vector(&sum2, 0, 0, 0);
+    }
+    float VDotN = dotProduct(&V, &planeNormal);
+    if(VDotN < 0){
+        // VDotN = 0;
+        // initialize_vector(&sum2, 0, 0, 0);
+    }
+    // printf("dot: %f\n", VDotN);
+
+    
+    float twoVDotN = 2 * VDotN;
+    
+    Vector twoA = scalarVecMult(twoVDotN, &planeNormal);
+    Vector negIncidence = scalarVecMult(-1, &V);        
+    Vector reflected = vectorAdd(&twoA, &negIncidence);        
+
+    // float indexOfRefraction = sphere->indexOfRefraction;
+    float initialF =  pow((transmittedIOR - 1)/(transmittedIOR + 1), 2);
+
+    float reflectedF = initialF + (1 - initialF) * pow(1 - VDotN, 5);
+
+     // printf("2 * dot: %f\n", twoVDotN);
+     // printf("initialF: %f\n", initialF);
+     // printf("reflectedF %f\n", reflectedF);
+     // printVector(&V);
+     // printVector(&planeNormal);
+               
+
+  
+    /////////////////finding the reflected ray
+     if(reflectedDepth < 10 && VDotN > 0){
+            
+
+             RayType reflectedRay;
+             initializeRayType(&reflectedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
+             setDirection(&reflectedRay, reflected.dx, reflected.dy, reflected.dz);
+             setIsInsideObject(&reflectedRay, ray->isInsideObject);
+             reflectedRay.indexOfTriangle = ray->indexOfTriangle;
+
+
+            
+             ColorType reflectedColor = traceRay(&reflectedRay, sphereArray, sizeOfArray, backgroundColor,
+                                                 lightArray, numberOfLights, vertices, faces, normals, textures,
+                                                  texCoord, reflectedDepth+1, transmittedDepth+1);
+
+             // printf("dot: %f\n", twoVDotN);
+             // printf("initialF: %f\n", initialF);
+             // printf("reflectedF %f\n", reflectedF);
+             // // printVector(&V);
+             // printVector(&N);
+             // printf("sphere: %d\n", sphere->m);
+             // printf("depth: %d\n ", depth);
+             if(reflectedColor.r == -1){
+                 // this case cacthes the no intersection case
+                 reflectedDepth = 10;
+            
+            
+             }else if(reflectedColor.r == backgroundColor->r && reflectedColor.g == backgroundColor->g && reflectedColor.b == backgroundColor->b){
+                 reflectedDepth = 10;
+                 if(triangle->opacity < 1){
+                    
+                     Vector newColor;
+                     initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                     newColor = scalarVecMult(reflectedF, &newColor);
+                     sum2 = vectorAdd(&sum2, &newColor);
+                 }
+             }else{
+
+                 Vector newColor;
+                 initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                 newColor = scalarVecMult(reflectedF, &newColor);
+                 sum2 = vectorAdd(&sum2, &newColor);
+            
+             }
+             // printVector(&sum2);
+         
+     }
+
+     ////////////////
+    if(transmittedDepth < 10 && VDotN > 0){
+
+        ////////////////finding transmitted ray ////////////
+        float termInSqrt = pow(ray->currentIndeOfRefraction/transmittedIOR, 2) * (1 - pow(VDotN, 2));
+        if(termInSqrt>= 1){
+            printf("total internal reflection has occured\n");
+            RayType reflectedRay;
+            initializeRayType(&reflectedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
+            setDirection(&reflectedRay, reflected.dx, reflected.dy, reflected.dz);
+            setIsInsideObject(&reflectedRay, ray->isInsideObject);
+            reflectedRay.indexOfTriangle = ray->indexOfTriangle;
+
+
+
+            ColorType reflectedColor = traceRay(&reflectedRay, sphereArray, sizeOfArray, backgroundColor,
+                                 lightArray, numberOfLights, vertices, faces, normals, textures,
+                                  texCoord, reflectedDepth+1, transmittedDepth+1);
+
+            if(reflectedColor.r == -1){
+            // this case cacthes the no intersection case
+                transmittedDepth = 10;
+            }else{
+
+                Vector newColor;
+                initialize_vector(&newColor, reflectedColor.r, reflectedColor.g, reflectedColor.b);
+                newColor = scalarVecMult(reflectedF, &newColor);
+                sum2 = vectorAdd(&sum2, &newColor);
+
+            }
+            // // printVector(&sum2);
+
+                        
+        }else if(reflectedF != 1 && triangle->opacity != 1){
+            printf("entered triangle transmitted ray\n");
+            Vector negN = scalarVecMult(-1, &planeNormal);
+            Vector A = scalarVecMult(sqrt(1 - (pow(ray->currentIndeOfRefraction/transmittedIOR, 2) * (1 - pow(VDotN, 2)))), &negN);
+            Vector B = scalarVecMult(VDotN, &planeNormal);
+            B = vectorAdd(&B, &negIncidence);
+            B = scalarVecMult(ray->currentIndeOfRefraction/transmittedIOR, &B);
+            Vector T = vectorAdd(&A, &B);
+            RayType transmittedRay;
+            initializeRayType(&transmittedRay, surfacePoint->dx, surfacePoint->dy, surfacePoint->dz, ray->bgIndexOfrefraction);
+            setDirection(&transmittedRay, T.dx, T.dy, T.dz);
+            transmittedRay.indexOfTriangle = ray->indexOfTriangle;
+            if(ray->isInsideObject){
+                
+                setRayCurrentIdxOfRefraction(&transmittedRay, ray->bgIndexOfrefraction);
+            }else{
+                setRayCurrentIdxOfRefraction(&transmittedRay, triangle->indexOfRefraction);
+                
+            }
+            setIsInsideObject(&transmittedRay, !ray->isInsideObject);
+            // transmittedRay.isTransmitting = 1;
+            
+            ColorType transmittedColor = traceRay(&transmittedRay, sphereArray, sizeOfArray, backgroundColor, lightArray,
+                                                  numberOfLights, vertices, faces, normals, textures, texCoord,
+                                                  reflectedDepth + 1, transmittedDepth + 1);
+            // printf("depth: %d\n ", depth);
+
+            if(transmittedColor.r == -1){
+                transmittedDepth = 10;
+            }else{
+
+                if(transmittedColor.r == backgroundColor->r && transmittedColor.g == backgroundColor->g && transmittedColor.b == backgroundColor->b){
+                    transmittedDepth = 10;
+                    if(!ray->isbackgroundcolored){
+                        
+                        Vector newColor;
+                        if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+                            printf("newcolor not initialized properly\n");
+                        }
+                        newColor = scalarVecMult((1-reflectedF) * (1 - triangle->opacity), &newColor);
+                        sum2 = vectorAdd(&sum2, &newColor);
+                    }
+                    transmittedRay.isbackgroundcolored = 1;
+            
+                }else{
+                    
+                    Vector newColor;
+                    if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+                        printf("newcolor not initialized properly\n");
+                    }
+                    newColor = scalarVecMult((1-reflectedF) * (1 - triangle->opacity), &newColor);
+                    // printf("new COlor: %d: ", transmittedDepth);
+                    printVector(&newColor);
+                    sum2 = vectorAdd(&sum2, &newColor);
+                }
+                
+                // Vector newColor;
+                // if(initialize_vector(&newColor, transmittedColor.r, transmittedColor.g, transmittedColor.b) == -1){
+               //     printf("newcolor not initialized properly\n");
+                // }
+                // newColor = scalarVecMult((1-reflectedF) * (1 - sphere->opacity), &newColor);
+                // sum2 = vectorAdd(&sum2, &newColor);
+            }
+            
+            
+        }
+    }
+        ///////////////////
+
+
+
+
+
+
+
+    
+
     // printVector(&sumOfLights);
 
-    Vector sum2 = vectorAdd(&sumOfLights, &ambientTerm);
     initializeColorType(&color, sum2.dx, sum2.dy, sum2.dz);
 
     if(color.r > 1){
@@ -1006,6 +1317,15 @@ ColorType shadeTriangle(Triangle *triangle, RayType *ray, Vector *surfacePoint, 
     if(color.b > 1){
         color.b = 1;
     }    
+    // if(color.r < 0){
+    //     color.r = 0;
+    // }
+    // if(color.g < 0){
+    //     color.g = 0;
+    // }
+    // if(color.b < -1){
+    //     color.b = 0;
+    // }
     
     return color;
     

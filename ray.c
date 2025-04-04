@@ -71,8 +71,8 @@ void printRay(RayType *ray){
     printf("(dx, dy, dz) = (%f, %f, %f)\n", ray->dx, ray->dy, ray->dz);
     printf("bgIndexOfRefraction = %f\n", ray->bgIndexOfrefraction);
     printf("current index of refraction = %f\n", ray->currentIndeOfRefraction);
-    printf("index of sphere  = %f\n", ray->indexOfSphere);
-    printf("index of triangle = %f\n", ray->indexOfTriangle);
+    printf("index of sphere  = %d\n", ray->indexOfSphere);
+    printf("index of triangle = %d\n", ray->indexOfTriangle);
     printf("is inside object = %d\n\n", ray->isInsideObject);
     
 }
