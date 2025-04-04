@@ -1,11 +1,11 @@
 
 CC = gcc
 
-output: ray.o raytracer1c.o camera.o vector.o colorType.o shapes.o light.o vecList.o ppmReader.o
-	$(CC) shapes.o light.o colorType.o vector.o camera.o ray.o vecList.o ppmReader.o raytracer1c.o -o raytracer1c -lm
+output: ray.o raytracer1d.o camera.o vector.o colorType.o shapes.o light.o vecList.o ppmReader.o
+	$(CC) shapes.o light.o colorType.o vector.o camera.o ray.o vecList.o ppmReader.o raytracer1d.o -o raytracer1d -lm
 
-raytracer1c.o: raytracer1c.c
-	$(CC) -c raytracer1c.c
+raytracer1d.o: raytracer1d.c
+	$(CC) -c raytracer1d.c
 
 ray.o: ray.c ray.h
 	$(CC) -c ray.c
@@ -26,10 +26,10 @@ light.o: light.h light.c
 ppmReader.o: ppmReader.c ppmReader.h
 	$(CC) -c ppmReader.c
 clean:
-	rm *.o raytracer1c
+	rm *.o raytracer1d
 run:
 	make
-	./raytracer1c
+	./raytracer1d
 
 vecList.o: vecList.h vecList.c
 	$(CC) -c vecList.c
