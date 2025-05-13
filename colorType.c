@@ -68,6 +68,9 @@ ColorType traceRay(RayType *ray, SphereType **sphereArray, int sizeOfArray,
         } else {
             float t1 = (-1 * B + sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
             float t2 = (-1 * B - sqrt((pow(B, 2) - 4 * A * C))) / (2 * A);
+            printf("t1: %f\n", t1);
+            printf("t2: %f\n", t2);
+
 
             float epsilon = 0.001;
 
