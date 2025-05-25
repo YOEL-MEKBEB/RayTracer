@@ -21,8 +21,8 @@ This is a raytracing program written completely in C. Given a txt file that cont
 #### This image showcases the use of triangles, mapping textures to triangles, and smooth shading using interpolated normals
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/1cc40c5c-b0f3-45cb-b07b-5709d990cf01" />
 
-### The actual raytracing begins. The next two images simulate 3 spheres, where one is transparent with an index of refraction of 1.5. The difference between the two images is the distance between the 
-transparent and opaque spheres.
+### The actual raytracing begins. The next two images simulate 3 spheres, where one is transparent with an index of refraction of 1.5. The difference between the two images is the distance between the transparent and opaque spheres.
+
 <img width="513" alt="image" src="https://github.com/user-attachments/assets/5fec7f54-6817-4b2c-9108-6b43086dac79" />
 
 <img width="513" alt="image" src="https://github.com/user-attachments/assets/fbd90188-f94e-4cfd-94c5-5c74e096f313" />
