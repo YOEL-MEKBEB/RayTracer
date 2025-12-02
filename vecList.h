@@ -67,9 +67,6 @@ Triangle *tri_list_get(tri_list *list, unsigned index);
 
 #endif
 
-// ==========================================
-// TEX_LIST & TEXTURE
-// ==========================================
 
 #ifndef TEX_LIST_H
 #define TEX_LIST_H
