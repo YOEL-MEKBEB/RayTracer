@@ -1,14 +1,14 @@
-
 #ifndef VEC_LIST_H
 #define VEC_LIST_H
 
 #include "shapes.h"
 #include "vector.h"
 
+
 typedef struct {
     unsigned int length;      // number of elements in the list
     unsigned int capacity;    // the max size of the list
-    Vector **data;            // the list
+    Vector *data;             // the list
 } vec_list;
 
 /// @brief initializes the list of vectors with 0 length and a capacity of 4
@@ -18,7 +18,7 @@ int vec_list_init(vec_list *list);
 
 /// @brief clears the vector list and frees the memory
 /// @param list list to be cleared
-void vec_list_clear(vec_list *list);
+void vec_list_clear(vec_list *list); 
 
 /// @brief appends a vector at the end of the list. Resizes the list if necessary
 /// @param list the list in which the vector gets appended to
@@ -34,12 +34,14 @@ Vector *vec_list_get(vec_list *list, unsigned index);
 
 #endif
 
+
 #ifndef TRI_LIST_H
 #define TRI_LIST_H
+
 typedef struct {
     unsigned int length;      // number of elements in the list
-    unsigned int capacity;    // the max size of the list
-    Triangle **data;          // the list
+    unsigned int capacity;    // max size of the list
+    Triangle *data;           // the list
 } tri_list;
 
 /// @brief initializes the list of triangles with a length of 0 and a capacity of 4
@@ -62,20 +64,26 @@ int tri_list_add(tri_list *list, Triangle *tri);
 /// @param index index of the triangle to be obtained
 /// @return returns a Triangle pointer at the given indexes location
 Triangle *tri_list_get(tri_list *list, unsigned index);
+
 #endif
+
+// ==========================================
+// TEX_LIST & TEXTURE
+// ==========================================
 
 #ifndef TEX_LIST_H
 #define TEX_LIST_H
 
+
 typedef struct {
     vec_list **data;    // the texture image
-    int height;         // the height of the image
+    int height;         // the height of the image        
 } Texture;
 
 typedef struct {
     unsigned int length;      // number of elements in the list
     unsigned int capacity;    // max size of the list
-    Texture **data;           // the list
+    Texture *data;           // the list
 } tex_list;
 
 /// @brief initializes the list of textures with length of 0 and capacity of 4

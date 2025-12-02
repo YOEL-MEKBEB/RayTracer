@@ -56,7 +56,7 @@ int writeImage(FILE *file, Camera *camera, char *width, char *height, ColorType 
     int numWidth = atoi(width);
 
     int numHeight = atoi(height);
-    // printf("%d\n", numWidth);
+    // printf("%d\n", nlumWidth);
     // printf("%d\n", numHeight);
 
     int r = (int) (backgroundColor->r * 255);
